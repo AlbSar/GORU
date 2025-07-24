@@ -2,41 +2,21 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  backend-tests:
+  build-test:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: goru
-          POSTGRES_PASSWORD: goru
-          POSTGRES_DB: goru_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U goru" --health-interval 10s --health-timeout 5s --health-retries 5
-    env:
-      DATABASE_URL: postgresql://goru:goru@localhost:5432/goru_db
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
+      - name: Kodu checkout et
+        uses: actions/checkout@v4
+
+      - name: Docker image build (local)
         run: |
-          pip install --upgrade pip
-          pip install -r backend/requirements.txt
-      - name: Run Alembic migrations
+          docker build -t goru-backend-test:ci -f backend/Dockerfile .
+
+      - name: Docker container içinde testleri çalıştır
         run: |
-          alembic -c alembic.ini upgrade head
-        working-directory: ./backend
-      - name: Run tests
-        run: |
-          pytest backend/app/tests/ 
+          docker run --rm goru-backend-test:ci pytest --cov=app --cov-report=xml

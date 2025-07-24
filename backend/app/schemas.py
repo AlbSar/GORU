@@ -3,60 +3,141 @@ Pydantic şemaları.
 Kullanıcı ve Sipariş modelleri için Create ve Read şemalarını içerir.
 """
 
-from pydantic import BaseModel, EmailStr, Field, ConfigDict, validator
+from pydantic import (
+    BaseModel,
+    EmailStr,
+    Field,
+    ConfigDict,
+    field_validator
+)
 from typing import List, Optional
 from datetime import datetime
 
+# --- User & Address Schemas ---
+
+class AddressBase(BaseModel):
+    address_line: str
+    city: str
+    country: str
+    postal_code: str
+    is_default: bool = False
+
+class AddressCreate(AddressBase):
+    pass
+
+class AddressRead(AddressBase):
+    id: int
+    model_config = ConfigDict(from_attributes=True)
+
 class UserBase(BaseModel):
-    name: str = Field(..., min_length=1, max_length=100, description="Kullanıcı adı / User name")
-    email: EmailStr = Field(..., description="E-posta adresi / Email address")
+    name: str
+    email: EmailStr
+    role: str = "customer"
+    is_active: bool = True
 
 class UserCreate(UserBase):
-    pass
+    password: str
 
 class UserRead(UserBase):
     id: int
+    created_at: datetime
+    updated_at: datetime
+    addresses: List[AddressRead] = []
+    orders: List['OrderRead'] = []
     model_config = ConfigDict(from_attributes=True)
 
-class UserReadWithOrders(UserRead):
-    orders: List["OrderRead"] = []
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    role: Optional[str] = None
+    is_active: Optional[bool] = None
+    password: Optional[str] = None
+
+# --- Category & Product Schemas ---
+
+class CategoryBase(BaseModel):
+    name: str
+    parent_id: Optional[int] = None
+    description: Optional[str] = None
+
+class CategoryCreate(CategoryBase):
+    pass
+
+class CategoryRead(CategoryBase):
+    id: int
+    model_config = ConfigDict(from_attributes=True)
+
+class ProductBase(BaseModel):
+    name: str
+    sku: str
+    category_id: Optional[int] = None
+    price: float
+    stock: int
+    description: Optional[str] = None
+    is_active: bool = True
+
+class ProductCreate(ProductBase):
+    pass
+
+class ProductRead(ProductBase):
+    id: int
+    created_at: datetime
+    category: Optional[CategoryRead] = None
+    model_config = ConfigDict(from_attributes=True)
+
+# --- Order & OrderItem Schemas ---
+
+class OrderItemBase(BaseModel):
+    product_id: int
+    quantity: int
+    unit_price: float
+    total_price: float
+
+class OrderItemCreate(OrderItemBase):
+    pass
+
+class OrderItemRead(OrderItemBase):
+    id: int
+    product: Optional[ProductRead] = None
+    model_config = ConfigDict(from_attributes=True)
 
 class OrderBase(BaseModel):
-    product_name: str = Field(..., min_length=1, max_length=200, description="Ürün adı / Product name")
-    amount: float = Field(..., gt=0, description="Tutar / Amount")
+    user_id: int
+    status: str = "pending"
+    total_amount: float
+    shipping_address_id: Optional[int] = None
 
 class OrderCreate(OrderBase):
-    user_id: int = Field(..., description="Kullanıcı ID / User ID")
+    order_items: List[OrderItemCreate]
 
 class OrderRead(OrderBase):
     id: int
-    user_id: int
     created_at: datetime
+    order_items: List[OrderItemRead] = []
+    shipping_address: Optional[AddressRead] = None
+    product_name: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
-class StockBase(BaseModel):
-    product_name: str = Field(..., min_length=1, description="Ürün adı / Product name")
-    quantity: int = Field(..., ge=0, description="Stok adedi / Stock quantity")
-    location: Optional[str] = Field(None, description="Stok yeri / Stock location")
+# --- Stock & StockMovement Schemas ---
 
-    @validator("product_name")
+class StockBase(BaseModel):
+    product_name: str
+    quantity: int
+    location: Optional[str] = None
+
+    @field_validator("product_name")
+    @classmethod
     def name_not_empty(cls, v):
         if not v or not v.strip():
             raise ValueError("Ürün adı boş olamaz / Product name cannot be empty")
         return v
 
 class StockCreate(StockBase):
-    pass
-
-class StockUpdate(BaseModel):
-    product_name: Optional[str] = Field(None, min_length=1, description="Ürün adı / Product name")
-    quantity: Optional[int] = Field(None, ge=0, description="Stok adedi / Stock quantity")
-    location: Optional[str] = Field(None, description="Stok yeri / Stock location")
-
-    @validator("product_name")
-    def name_not_empty(cls, v):
-        if v is not None and not v.strip():
-            raise ValueError("Ürün adı boş olamaz / Product name cannot be empty")
+    @field_validator("quantity")
+    @classmethod
+    def quantity_non_negative(cls, v):
+        if v < 0:
+            raise ValueError("Quantity cannot be negative")
         return v
 
 class StockRead(StockBase):
@@ -64,4 +145,32 @@ class StockRead(StockBase):
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
 
-UserReadWithOrders.model_rebuild() 
+class StockMovementBase(BaseModel):
+    product_id: int
+    movement_type: str  # IN, OUT, TRANSFER
+    quantity: int
+    source_location: Optional[str] = None
+    dest_location: Optional[str] = None
+
+class StockMovementCreate(StockMovementBase):
+    pass
+
+class StockMovementRead(StockMovementBase):
+    id: int
+    created_at: datetime
+    product: Optional[ProductRead] = None
+    model_config = ConfigDict(from_attributes=True)
+
+class StockUpdate(BaseModel):
+    product_name: Optional[str] = None
+    quantity: Optional[int] = None
+    location: Optional[str] = None
+
+    @field_validator("product_name")
+    @classmethod
+    def name_not_empty(cls, v):
+        if v is not None and not v.strip():
+            raise ValueError("Ürün adı boş olamaz / Product name cannot be empty")
+        return v 
+
+UserRead.model_rebuild() 
