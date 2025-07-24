@@ -41,15 +41,19 @@ def get_db():
     status_code=status.HTTP_201_CREATED,
     summary="Kullanıcı oluştur / Create user",
     responses={
-        201: {"description": "Kullanıcı başarıyla oluşturuldu / User created successfully."},
-        400: {"description": "E-posta zaten kayıtlı veya geçersiz veri / Email already registered or invalid data."},
-        401: {"description": "Yetkisiz / Unauthorized"}
-    }
+        201: {
+            "description": "Kullanıcı başarıyla oluşturuldu / User created successfully."
+        },
+        400: {
+            "description": "E-posta zaten kayıtlı veya geçersiz veri / Email already registered or invalid data."
+        },
+        401: {"description": "Yetkisiz / Unauthorized"},
+    },
 )
 async def create_user(
     user: schemas.UserCreate,
     db: Session = Depends(get_db),
-    user_auth=Depends(get_current_user)
+    user_auth=Depends(get_current_user),
 ):
     """
     TR: Yeni kullanıcı oluşturur. E-posta benzersiz olmalıdır.
@@ -61,10 +65,11 @@ async def create_user(
         print(f"[DEBUG] E-posta zaten kayıtlı: {user.email}")
         raise HTTPException(
             status_code=400,
-            detail="Bu e-posta zaten kayıtlı. / Email already registered."
+            detail="Bu e-posta zaten kayıtlı. / Email already registered.",
         )
     try:
         from .auth import hash_password
+
         hashed_pw = hash_password(user.password)
         user_data = user.model_dump(exclude={"password"})
         if "is_active" in user_data:
@@ -86,12 +91,11 @@ async def create_user(
     summary="Kullanıcıları listele / List users",
     responses={
         200: {"description": "Kullanıcı listesi / List of users."},
-        401: {"description": "Yetkisiz / Unauthorized"}
-    }
+        401: {"description": "Yetkisiz / Unauthorized"},
+    },
 )
 async def list_users(
-    db: Session = Depends(get_db),
-    user_auth=Depends(get_current_user)
+    db: Session = Depends(get_db), user_auth=Depends(get_current_user)
 ):
     """
     TR: Tüm kullanıcıları listeler.
@@ -107,13 +111,11 @@ async def list_users(
     responses={
         200: {"description": "Kullanıcı ve siparişleri / User and their orders."},
         404: {"description": "Kullanıcı bulunamadı / User not found."},
-        401: {"description": "Yetkisiz / Unauthorized"}
-    }
+        401: {"description": "Yetkisiz / Unauthorized"},
+    },
 )
 async def get_user(
-    user_id: int,
-    db: Session = Depends(get_db),
-    user_auth=Depends(get_current_user)
+    user_id: int, db: Session = Depends(get_db), user_auth=Depends(get_current_user)
 ):
     """
     TR: Kullanıcıyı ve siparişlerini getirir.
@@ -122,8 +124,7 @@ async def get_user(
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=404,
-            detail="Kullanıcı bulunamadı. / User not found."
+            status_code=404, detail="Kullanıcı bulunamadı. / User not found."
         )
     return user
 
@@ -136,26 +137,26 @@ async def get_user(
         200: {"description": "Kullanıcı güncellendi / User updated."},
         404: {"description": "Kullanıcı bulunamadı / User not found."},
         400: {"description": "Geçersiz veri / Invalid data."},
-        401: {"description": "Yetkisiz / Unauthorized"}
-    }
+        401: {"description": "Yetkisiz / Unauthorized"},
+    },
 )
 async def update_user(
     user_id: int,
     user: schemas.UserUpdate,
     db: Session = Depends(get_db),
-    user_auth=Depends(get_current_user)
+    user_auth=Depends(get_current_user),
 ):
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
     if not db_user:
         raise HTTPException(
-            status_code=404,
-            detail="Kullanıcı bulunamadı. / User not found."
+            status_code=404, detail="Kullanıcı bulunamadı. / User not found."
         )
     update_data = user.model_dump(exclude_unset=True)
     if "is_active" in update_data:
         update_data["is_active"] = int(update_data["is_active"])
     if "password" in update_data:
         from .auth import hash_password
+
         update_data["password_hash"] = hash_password(update_data.pop("password"))
     for key, value in update_data.items():
         setattr(db_user, key, value)
@@ -171,13 +172,11 @@ async def update_user(
     responses={
         204: {"description": "Kullanıcı silindi / User deleted."},
         404: {"description": "Kullanıcı bulunamadı / User not found."},
-        401: {"description": "Yetkisiz / Unauthorized"}
-    }
+        401: {"description": "Yetkisiz / Unauthorized"},
+    },
 )
 async def delete_user(
-    user_id: int,
-    db: Session = Depends(get_db),
-    user_auth=Depends(get_current_user)
+    user_id: int, db: Session = Depends(get_db), user_auth=Depends(get_current_user)
 ):
     """
     TR: Kullanıcıyı siler.
@@ -186,8 +185,7 @@ async def delete_user(
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
     if not db_user:
         raise HTTPException(
-            status_code=404,
-            detail="Kullanıcı bulunamadı. / User not found."
+            status_code=404, detail="Kullanıcı bulunamadı. / User not found."
         )
     db.delete(db_user)
     db.commit()
@@ -203,16 +201,18 @@ async def delete_user(
     status_code=status.HTTP_201_CREATED,
     summary="Sipariş oluştur / Create order",
     responses={
-        201: {"description": "Sipariş başarıyla oluşturuldu / Order created successfully."},
+        201: {
+            "description": "Sipariş başarıyla oluşturuldu / Order created successfully."
+        },
         404: {"description": "Kullanıcı bulunamadı / User not found."},
         400: {"description": "Geçersiz veri / Invalid data."},
-        401: {"description": "Yetkisiz / Unauthorized"}
-    }
+        401: {"description": "Yetkisiz / Unauthorized"},
+    },
 )
 async def create_order(
     order: dict,  # raw dict alıyoruz
     db: Session = Depends(get_db),
-    user_auth=Depends(get_current_user)
+    user_auth=Depends(get_current_user),
 ):
     """
     TR: Yeni sipariş oluşturur. Kullanıcı ID geçerli olmalıdır.
@@ -222,10 +222,19 @@ async def create_order(
     if "product_name" in order and "amount" in order:
         if order["amount"] < 0:
             raise HTTPException(status_code=422, detail="Amount cannot be negative")
-        product = db.query(models.Product).filter(models.Product.name == order["product_name"]).first()
+        product = (
+            db.query(models.Product)
+            .filter(models.Product.name == order["product_name"])
+            .first()
+        )
         if not product:
             # Ürün yoksa otomatik ekle
-            product = models.Product(name=order["product_name"], sku=str(uuid.uuid4()), price=order["amount"], stock=100)
+            product = models.Product(
+                name=order["product_name"],
+                sku=str(uuid.uuid4()),
+                price=order["amount"],
+                stock=100,
+            )
             db.add(product)
             db.commit()
             db.refresh(product)
@@ -233,26 +242,25 @@ async def create_order(
             "product_id": product.id,
             "quantity": 1,
             "unit_price": order["amount"],
-            "total_price": order["amount"]
+            "total_price": order["amount"],
         }
         order_obj = schemas.OrderCreate(
             user_id=order["user_id"],
             total_amount=order["amount"],
-            order_items=[order_item]
+            order_items=[order_item],
         )
     else:
         order_obj = schemas.OrderCreate(**order)
     user = db.query(models.User).filter(models.User.id == order_obj.user_id).first()
     if not user:
         raise HTTPException(
-            status_code=404,
-            detail="Kullanıcı bulunamadı. / User not found."
+            status_code=404, detail="Kullanıcı bulunamadı. / User not found."
         )
     db_order = models.Order(
         user_id=order_obj.user_id,
         total_amount=order_obj.total_amount,
         status=getattr(order_obj, "status", "pending"),
-        shipping_address_id=getattr(order_obj, "shipping_address_id", None)
+        shipping_address_id=getattr(order_obj, "shipping_address_id", None),
     )
     db.add(db_order)
     db.commit()
@@ -264,7 +272,7 @@ async def create_order(
             product_id=item.product_id,
             quantity=getattr(item, "quantity", 1),
             unit_price=item.unit_price,
-            total_price=item.total_price
+            total_price=item.total_price,
         )
         db.add(db_item)
     db.commit()
@@ -272,7 +280,11 @@ async def create_order(
     result = db_order.__dict__.copy()
     # product_name'i response'a ekle
     if order_obj.order_items and hasattr(order_obj.order_items[0], "product_id"):
-        product = db.query(models.Product).filter(models.Product.id == order_obj.order_items[0].product_id).first()
+        product = (
+            db.query(models.Product)
+            .filter(models.Product.id == order_obj.order_items[0].product_id)
+            .first()
+        )
         if product:
             result["product_name"] = product.name
     return result
@@ -284,12 +296,11 @@ async def create_order(
     summary="Siparişleri listele / List orders",
     responses={
         200: {"description": "Sipariş listesi / List of orders."},
-        401: {"description": "Yetkisiz / Unauthorized"}
-    }
+        401: {"description": "Yetkisiz / Unauthorized"},
+    },
 )
 async def list_orders(
-    db: Session = Depends(get_db),
-    user_auth=Depends(get_current_user)
+    db: Session = Depends(get_db), user_auth=Depends(get_current_user)
 ):
     """
     TR: Tüm siparişleri listeler.
@@ -305,13 +316,11 @@ async def list_orders(
     responses={
         200: {"description": "Sipariş detayları / Order details."},
         404: {"description": "Sipariş bulunamadı / Order not found."},
-        401: {"description": "Yetkisiz / Unauthorized"}
-    }
+        401: {"description": "Yetkisiz / Unauthorized"},
+    },
 )
 async def get_order(
-    order_id: int,
-    db: Session = Depends(get_db),
-    user_auth=Depends(get_current_user)
+    order_id: int, db: Session = Depends(get_db), user_auth=Depends(get_current_user)
 ):
     """
     TR: Sipariş detayını getirir.
@@ -320,8 +329,7 @@ async def get_order(
     order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if not order:
         raise HTTPException(
-            status_code=404,
-            detail="Sipariş bulunamadı. / Order not found."
+            status_code=404, detail="Sipariş bulunamadı. / Order not found."
         )
     return order
 
@@ -334,38 +342,53 @@ async def get_order(
         200: {"description": "Sipariş güncellendi / Order updated."},
         404: {"description": "Sipariş bulunamadı / Order not found."},
         400: {"description": "Geçersiz veri / Invalid data."},
-        401: {"description": "Yetkisiz / Unauthorized"}
-    }
+        401: {"description": "Yetkisiz / Unauthorized"},
+    },
 )
 async def update_order(
     order_id: int,
     order: dict,
     db: Session = Depends(get_db),
-    user_auth=Depends(get_current_user)
+    user_auth=Depends(get_current_user),
 ):
     db_order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if not db_order:
-        raise HTTPException(status_code=404, detail="Sipariş bulunamadı. / Order not found.")
+        raise HTTPException(
+            status_code=404, detail="Sipariş bulunamadı. / Order not found."
+        )
     if "product_name" in order and "amount" in order:
         if order["amount"] < 0:
             raise HTTPException(status_code=422, detail="Amount cannot be negative")
-        product = db.query(models.Product).filter(models.Product.name == order["product_name"]).first()
+        product = (
+            db.query(models.Product)
+            .filter(models.Product.name == order["product_name"])
+            .first()
+        )
         if not product:
-            product = models.Product(name=order["product_name"], sku=str(uuid.uuid4()), price=order["amount"], stock=100)
+            product = models.Product(
+                name=order["product_name"],
+                sku=str(uuid.uuid4()),
+                price=order["amount"],
+                stock=100,
+            )
             db.add(product)
             db.commit()
             db.refresh(product)
         db_order.total_amount = order["amount"]
         db_order.status = order.get("status", db_order.status)
-        db_order.shipping_address_id = order.get("shipping_address_id", db_order.shipping_address_id)
+        db_order.shipping_address_id = order.get(
+            "shipping_address_id", db_order.shipping_address_id
+        )
         # OrderItem güncelle
-        db.query(models.OrderItem).filter(models.OrderItem.order_id == db_order.id).delete()
+        db.query(models.OrderItem).filter(
+            models.OrderItem.order_id == db_order.id
+        ).delete()
         db_item = models.OrderItem(
             order_id=db_order.id,
             product_id=product.id,
             quantity=1,
             unit_price=order["amount"],
-            total_price=order["amount"]
+            total_price=order["amount"],
         )
         db.add(db_item)
         db.commit()
@@ -385,13 +408,11 @@ async def update_order(
     responses={
         204: {"description": "Sipariş silindi / Order deleted."},
         404: {"description": "Sipariş bulunamadı / Order not found."},
-        401: {"description": "Yetkisiz / Unauthorized"}
-    }
+        401: {"description": "Yetkisiz / Unauthorized"},
+    },
 )
 async def delete_order(
-    order_id: int,
-    db: Session = Depends(get_db),
-    user_auth=Depends(get_current_user)
+    order_id: int, db: Session = Depends(get_db), user_auth=Depends(get_current_user)
 ):
     """
     TR: Siparişi siler.
@@ -400,8 +421,7 @@ async def delete_order(
     db_order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if not db_order:
         raise HTTPException(
-            status_code=404,
-            detail="Sipariş bulunamadı. / Order not found."
+            status_code=404, detail="Sipariş bulunamadı. / Order not found."
         )
     db.delete(db_order)
     db.commit()
@@ -418,14 +438,16 @@ async def delete_order(
     summary="Stok ekle / Create stock",
     responses={
         201: {"description": "Stok başarıyla eklendi / Stock created."},
-        400: {"description": "Benzersiz ürün adı veya geçersiz veri / Unique product name or invalid data."},
-        401: {"description": "Yetkisiz / Unauthorized"}
-    }
+        400: {
+            "description": "Benzersiz ürün adı veya geçersiz veri / Unique product name or invalid data."
+        },
+        401: {"description": "Yetkisiz / Unauthorized"},
+    },
 )
 def create_stock(
     stock: StockCreate,
     db: Session = Depends(get_db),
-    user_auth=Depends(get_current_user)
+    user_auth=Depends(get_current_user),
 ):
     """
     TR: Yeni stok kaydı ekler. Ürün adı benzersiz olmalıdır.
@@ -434,7 +456,7 @@ def create_stock(
     if db.query(Stock).filter(Stock.product_name == stock.product_name).first():
         raise HTTPException(
             status_code=400,
-            detail="Ürün adı zaten kayıtlı / Product name already exists"
+            detail="Ürün adı zaten kayıtlı / Product name already exists",
         )
     db_stock = Stock(**stock.model_dump())
     db.add(db_stock)
@@ -449,13 +471,10 @@ def create_stock(
     summary="Stokları listele / List stocks",
     responses={
         200: {"description": "Stok listesi / List of stocks."},
-        401: {"description": "Yetkisiz / Unauthorized"}
-    }
+        401: {"description": "Yetkisiz / Unauthorized"},
+    },
 )
-def list_stocks(
-    db: Session = Depends(get_db),
-    user_auth=Depends(get_current_user)
-):
+def list_stocks(db: Session = Depends(get_db), user_auth=Depends(get_current_user)):
     """
     TR: Tüm stokları listeler.
     EN: Lists all stocks.
@@ -470,13 +489,11 @@ def list_stocks(
     responses={
         200: {"description": "Stok detayı / Stock detail."},
         404: {"description": "Stok bulunamadı / Stock not found."},
-        401: {"description": "Yetkisiz / Unauthorized"}
-    }
+        401: {"description": "Yetkisiz / Unauthorized"},
+    },
 )
 def get_stock(
-    id: int,
-    db: Session = Depends(get_db),
-    user_auth=Depends(get_current_user)
+    id: int, db: Session = Depends(get_db), user_auth=Depends(get_current_user)
 ):
     """
     TR: Tek stok kaydını getirir.
@@ -484,10 +501,7 @@ def get_stock(
     """
     stock = db.query(Stock).filter(Stock.id == id).first()
     if not stock:
-        raise HTTPException(
-            status_code=404,
-            detail="Stok bulunamadı / Stock not found"
-        )
+        raise HTTPException(status_code=404, detail="Stok bulunamadı / Stock not found")
     return stock
 
 
@@ -498,15 +512,17 @@ def get_stock(
     responses={
         200: {"description": "Stok güncellendi / Stock updated."},
         404: {"description": "Stok bulunamadı / Stock not found."},
-        400: {"description": "Benzersiz ürün adı veya geçersiz veri / Unique product name or invalid data."},
-        401: {"description": "Yetkisiz / Unauthorized"}
-    }
+        400: {
+            "description": "Benzersiz ürün adı veya geçersiz veri / Unique product name or invalid data."
+        },
+        401: {"description": "Yetkisiz / Unauthorized"},
+    },
 )
 def update_stock(
     id: int,
     stock: StockUpdate,
     db: Session = Depends(get_db),
-    user_auth=Depends(get_current_user)
+    user_auth=Depends(get_current_user),
 ):
     """
     TR: Stok kaydını günceller.
@@ -514,16 +530,16 @@ def update_stock(
     """
     db_stock = db.query(Stock).filter(Stock.id == id).first()
     if not db_stock:
-        raise HTTPException(
-            status_code=404,
-            detail="Stok bulunamadı / Stock not found"
-        )
-    if stock.product_name and db.query(Stock).filter(
-        Stock.product_name == stock.product_name, Stock.id != id
-    ).first():
+        raise HTTPException(status_code=404, detail="Stok bulunamadı / Stock not found")
+    if (
+        stock.product_name
+        and db.query(Stock)
+        .filter(Stock.product_name == stock.product_name, Stock.id != id)
+        .first()
+    ):
         raise HTTPException(
             status_code=400,
-            detail="Ürün adı zaten kayıtlı / Product name already exists"
+            detail="Ürün adı zaten kayıtlı / Product name already exists",
         )
     for key, value in stock.model_dump(exclude_unset=True).items():
         setattr(db_stock, key, value)
@@ -539,13 +555,11 @@ def update_stock(
     responses={
         204: {"description": "Stok silindi / Stock deleted."},
         404: {"description": "Stok bulunamadı / Stock not found."},
-        401: {"description": "Yetkisiz / Unauthorized"}
-    }
+        401: {"description": "Yetkisiz / Unauthorized"},
+    },
 )
 def delete_stock(
-    id: int,
-    db: Session = Depends(get_db),
-    user_auth=Depends(get_current_user)
+    id: int, db: Session = Depends(get_db), user_auth=Depends(get_current_user)
 ):
     """
     TR: Stok kaydını siler.
@@ -553,10 +567,7 @@ def delete_stock(
     """
     db_stock = db.query(Stock).filter(Stock.id == id).first()
     if not db_stock:
-        raise HTTPException(
-            status_code=404,
-            detail="Stok bulunamadı / Stock not found"
-        )
+        raise HTTPException(status_code=404, detail="Stok bulunamadı / Stock not found")
     db.delete(db_stock)
     db.commit()
-    return 
+    return

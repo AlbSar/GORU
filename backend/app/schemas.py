@@ -3,17 +3,12 @@ Pydantic şemaları.
 Kullanıcı ve Sipariş modelleri için Create ve Read şemalarını içerir.
 """
 
-from pydantic import (
-    BaseModel,
-    EmailStr,
-    Field,
-    ConfigDict,
-    field_validator
-)
+from pydantic import BaseModel, EmailStr, ConfigDict, field_validator
 from typing import List, Optional
 from datetime import datetime
 
 # --- User & Address Schemas ---
+
 
 class AddressBase(BaseModel):
     address_line: str
@@ -22,12 +17,15 @@ class AddressBase(BaseModel):
     postal_code: str
     is_default: bool = False
 
+
 class AddressCreate(AddressBase):
     pass
+
 
 class AddressRead(AddressBase):
     id: int
     model_config = ConfigDict(from_attributes=True)
+
 
 class UserBase(BaseModel):
     name: str
@@ -35,16 +33,19 @@ class UserBase(BaseModel):
     role: str = "customer"
     is_active: bool = True
 
+
 class UserCreate(UserBase):
     password: str
+
 
 class UserRead(UserBase):
     id: int
     created_at: datetime
     updated_at: datetime
     addresses: List[AddressRead] = []
-    orders: List['OrderRead'] = []
+    orders: List["OrderRead"] = []
     model_config = ConfigDict(from_attributes=True)
+
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
@@ -53,19 +54,24 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
     password: Optional[str] = None
 
+
 # --- Category & Product Schemas ---
+
 
 class CategoryBase(BaseModel):
     name: str
     parent_id: Optional[int] = None
     description: Optional[str] = None
 
+
 class CategoryCreate(CategoryBase):
     pass
+
 
 class CategoryRead(CategoryBase):
     id: int
     model_config = ConfigDict(from_attributes=True)
+
 
 class ProductBase(BaseModel):
     name: str
@@ -76,8 +82,10 @@ class ProductBase(BaseModel):
     description: Optional[str] = None
     is_active: bool = True
 
+
 class ProductCreate(ProductBase):
     pass
+
 
 class ProductRead(ProductBase):
     id: int
@@ -85,7 +93,9 @@ class ProductRead(ProductBase):
     category: Optional[CategoryRead] = None
     model_config = ConfigDict(from_attributes=True)
 
+
 # --- Order & OrderItem Schemas ---
+
 
 class OrderItemBase(BaseModel):
     product_id: int
@@ -93,13 +103,16 @@ class OrderItemBase(BaseModel):
     unit_price: float
     total_price: float
 
+
 class OrderItemCreate(OrderItemBase):
     pass
+
 
 class OrderItemRead(OrderItemBase):
     id: int
     product: Optional[ProductRead] = None
     model_config = ConfigDict(from_attributes=True)
+
 
 class OrderBase(BaseModel):
     user_id: int
@@ -107,8 +120,10 @@ class OrderBase(BaseModel):
     total_amount: float
     shipping_address_id: Optional[int] = None
 
+
 class OrderCreate(OrderBase):
     order_items: List[OrderItemCreate]
+
 
 class OrderRead(OrderBase):
     id: int
@@ -118,7 +133,9 @@ class OrderRead(OrderBase):
     product_name: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
+
 # --- Stock & StockMovement Schemas ---
+
 
 class StockBase(BaseModel):
     product_name: str
@@ -132,6 +149,7 @@ class StockBase(BaseModel):
             raise ValueError("Ürün adı boş olamaz / Product name cannot be empty")
         return v
 
+
 class StockCreate(StockBase):
     @field_validator("quantity")
     @classmethod
@@ -140,10 +158,12 @@ class StockCreate(StockBase):
             raise ValueError("Quantity cannot be negative")
         return v
 
+
 class StockRead(StockBase):
     id: int
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
+
 
 class StockMovementBase(BaseModel):
     product_id: int
@@ -152,14 +172,17 @@ class StockMovementBase(BaseModel):
     source_location: Optional[str] = None
     dest_location: Optional[str] = None
 
+
 class StockMovementCreate(StockMovementBase):
     pass
+
 
 class StockMovementRead(StockMovementBase):
     id: int
     created_at: datetime
     product: Optional[ProductRead] = None
     model_config = ConfigDict(from_attributes=True)
+
 
 class StockUpdate(BaseModel):
     product_name: Optional[str] = None
@@ -171,6 +194,7 @@ class StockUpdate(BaseModel):
     def name_not_empty(cls, v):
         if v is not None and not v.strip():
             raise ValueError("Ürün adı boş olamaz / Product name cannot be empty")
-        return v 
+        return v
 
-UserRead.model_rebuild() 
+
+UserRead.model_rebuild()

@@ -15,7 +15,7 @@ jobs:
 
       - name: Docker image build (local)
         run: |
-          docker build -t goru-backend-test:ci -f backend/Dockerfile .
+          docker build -t goru-backend-test:ci -f backend/Dockerfile backend
 
       - name: Docker container içinde testleri çalıştır
         run: |

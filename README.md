@@ -3,11 +3,17 @@
 
 # GORU ERP Backend
 
-GORU ERP projesi için FastAPI, React ve PostgreSQL tabanlı backend uygulaması.
+Bu proje, gerçek bir ekip çalışması ve yazılım geliştirme sürecinin tüm iniş çıkışlarını yansıtan, FastAPI tabanlı bir ERP backend uygulamasıdır. Projeyi geliştirirken hem teknik hem de pratik birçok zorlukla karşılaştık ve her adımda gerçek bir insan dokunuşu ve öğrenme süreci yaşandı.
 
-... (devamı mevcut README içeriğiyle birleştirilecek)
+## Süreç ve Deneyimler
 
+<<<<<<< Updated upstream
 
+=======
+Başlangıçta temel hedefimiz, modüler ve sürdürülebilir bir ERP altyapısı kurmaktı. Klasör yapısından test otomasyonuna, Docker ve CI/CD entegrasyonuna kadar her adımda hem modern yazılım pratiklerini hem de kendi tecrübelerimizi birleştirdik. Özellikle Docker ve Github Actions ile CI süreçlerinde context ve yol hataları gibi gerçek dünyada sıkça karşılaşılan sorunlarla uğraştık. Her hatada, önce sebebini anlamaya, sonra da en temiz ve sürdürülebilir çözümü bulmaya çalıştık.
+
+Bu README, hem teknik bir rehber hem de sürecin bir özeti olarak hazırlandı. Buradaki adımlar, birebir yaşanmış deneyimlerin ve gerçek debug süreçlerinin sonucudur. Umarım bu dokümantasyon, projeyi devralacak veya benzer bir yolculuğa çıkacak herkes için yol gösterici olur.
+>>>>>>> Stashed changes
 
 ---
 
@@ -34,7 +40,7 @@ jobs:
 
       - name: Docker image build (local)
         run: |
-          docker build -t goru-backend-test:ci -f backend/Dockerfile .
+          docker build -t goru-backend-test:ci -f backend/Dockerfile backend
 
       - name: Docker container içinde testleri çalıştır
         run: |
@@ -44,6 +50,7 @@ jobs:
 - Her push/pull request’te image local olarak build edilir.
 - Testler, image içinde (container’da) çalıştırılır.
 - Otomatik deployment veya push adımı yoktur.
+- Build context ve Dockerfile yolları, yaşanan hatalardan sonra özellikle dikkatlice ayarlandı.
 
 ---
 
@@ -96,7 +103,7 @@ README.md dosyanın en üstüne ekle:
   ```
 - Docker ile:
   ```sh
-  docker build -t goru-backend-test:local -f backend/Dockerfile .
+  docker build -t goru-backend-test:local -f backend/Dockerfile backend
   docker run --rm goru-backend-test:local pytest --cov=app --cov-report=term-missing
   ```
 
@@ -155,3 +162,9 @@ docker-compose up --build
 - **docker-compose.yml**: Local geliştirme ve test ortamı.
 - **Gelecekte**: SSH deploy job’u kolayca eklenebilir.
 
+<<<<<<< Updated upstream
+=======
+---
+
+Bu dokümantasyon, gerçek bir geliştirme ve öğrenme sürecinin ürünü olarak, hem teknik hem de insani bir bakış açısıyla hazırlandı. Herhangi bir adımda hata alırsanız, hata mesajını paylaşın; birlikte çözüm bulabiliriz!
+>>>>>>> Stashed changes

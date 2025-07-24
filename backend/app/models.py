@@ -1,5 +1,12 @@
 from sqlalchemy import (
-    Column, Integer, String, ForeignKey, Float, DateTime, func, UniqueConstraint
+    Column,
+    Integer,
+    String,
+    ForeignKey,
+    Float,
+    DateTime,
+    func,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship, declarative_base
 import datetime
@@ -16,9 +23,13 @@ class User(Base):
     role = Column(String, default="customer", nullable=False)
     is_active = Column(Integer, default=1)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
+    )
     orders = relationship("Order", back_populates="user", cascade="all, delete-orphan")
-    addresses = relationship("Address", back_populates="user", cascade="all, delete-orphan")
+    addresses = relationship(
+        "Address", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class Address(Base):
@@ -64,7 +75,9 @@ class Order(Base):
     total_amount = Column(Float, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     user = relationship("User", back_populates="orders")
-    order_items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+    order_items = relationship(
+        "OrderItem", back_populates="order", cascade="all, delete-orphan"
+    )
     shipping_address_id = Column(Integer, ForeignKey("addresses.id"))
     shipping_address = relationship("Address")
 
@@ -95,11 +108,9 @@ class StockMovement(Base):
 
 class Stock(Base):
     __tablename__ = "stocks"
-    __table_args__ = (
-        UniqueConstraint("product_name", name="uq_product_name"),
-    )
+    __table_args__ = (UniqueConstraint("product_name", name="uq_product_name"),)
     id = Column(Integer, primary_key=True, index=True)
     product_name = Column(String, unique=True, nullable=False, index=True)
     quantity = Column(Integer, nullable=False, default=0)
     location = Column(String, nullable=True)
-    created_at = Column(DateTime, server_default=func.now(), nullable=False) 
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)

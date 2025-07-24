@@ -26,4 +26,4 @@ def test_connection():
         return True
     except OperationalError as e:
         print(f"Veritabanı bağlantı hatası: {e}")
-        return False 
+        return False

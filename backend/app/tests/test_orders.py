@@ -2,9 +2,7 @@ import sys
 import os
 import uuid
 
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
-)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 from fastapi.testclient import TestClient
 from app.main import app
 
@@ -23,14 +21,16 @@ def unique_product():
 def test_create_order():
     email = unique_email()
     user_resp = client.post(
-        "/users/", json={"name": "Order User", "email": email, "password": "test123"}, headers=headers
+        "/users/",
+        json={"name": "Order User", "email": email, "password": "test123"},
+        headers=headers,
     )
     user_id = user_resp.json()["id"]
     product = unique_product()
     response = client.post(
         "/orders/",
         json={"user_id": user_id, "product_name": product, "amount": 10.5},
-        headers=headers
+        headers=headers,
     )
     assert response.status_code == 201
     data = response.json()
@@ -45,18 +45,16 @@ def test_create_order_with_all_required_fields():
     """
     email = unique_email()
     user_resp = client.post(
-        "/users/", json={"name": "Order User3", "email": email, "password": "test123"}, headers=headers
+        "/users/",
+        json={"name": "Order User3", "email": email, "password": "test123"},
+        headers=headers,
     )
     user_id = user_resp.json()["id"]
     product = unique_product()
     response = client.post(
         "/orders/",
-        json={
-            "user_id": user_id,
-            "product_name": product,
-            "amount": 15.0
-        },
-        headers=headers
+        json={"user_id": user_id, "product_name": product, "amount": 15.0},
+        headers=headers,
     )
     assert response.status_code == 201
     data = response.json()
@@ -94,13 +92,15 @@ def test_create_order_with_all_required_fields():
 def test_create_order_invalid_amount():
     email = unique_email()
     user_resp = client.post(
-        "/users/", json={"name": "Order User3", "email": email, "password": "test123"}, headers=headers
+        "/users/",
+        json={"name": "Order User3", "email": email, "password": "test123"},
+        headers=headers,
     )
     user_id = user_resp.json()["id"]
     response = client.post(
         "/orders/",
         json={"user_id": user_id, "product_name": unique_product(), "amount": -5},
-        headers=headers
+        headers=headers,
     )
     assert response.status_code == 422
 
@@ -109,7 +109,7 @@ def test_create_order_nonexistent_user():
     response = client.post(
         "/orders/",
         json={"user_id": 9999999, "product_name": unique_product(), "amount": 10.5},
-        headers=headers
+        headers=headers,
     )
     assert response.status_code == 404
 
@@ -128,12 +128,16 @@ def test_list_orders():
 def test_get_order():
     email = unique_email()
     user_resp = client.post(
-        "/users/", json={"name": "Order Detail", "email": email, "password": "test123"}, headers=headers
+        "/users/",
+        json={"name": "Order Detail", "email": email, "password": "test123"},
+        headers=headers,
     )
     user_id = user_resp.json()["id"]
     product = unique_product()
     order_resp = client.post(
-        "/orders/", json={"user_id": user_id, "product_name": product, "amount": 20.0}, headers=headers
+        "/orders/",
+        json={"user_id": user_id, "product_name": product, "amount": 20.0},
+        headers=headers,
     )
     order_id = order_resp.json()["id"]
     response = client.get(f"/orders/{order_id}", headers=headers)
@@ -145,19 +149,23 @@ def test_get_order():
 def test_update_order():
     email = unique_email()
     user_resp = client.post(
-        "/users/", json={"name": "Order Update", "email": email, "password": "test123"}, headers=headers
+        "/users/",
+        json={"name": "Order Update", "email": email, "password": "test123"},
+        headers=headers,
     )
     user_id = user_resp.json()["id"]
     product = unique_product()
     order_resp = client.post(
-        "/orders/", json={"user_id": user_id, "product_name": product, "amount": 30.0}, headers=headers
+        "/orders/",
+        json={"user_id": user_id, "product_name": product, "amount": 30.0},
+        headers=headers,
     )
     order_id = order_resp.json()["id"]
     new_product = unique_product()
     response = client.put(
         f"/orders/{order_id}",
         json={"user_id": user_id, "product_name": new_product, "amount": 35.0},
-        headers=headers
+        headers=headers,
     )
     assert response.status_code == 200
     assert response.json()["product_name"] == new_product
@@ -166,13 +174,17 @@ def test_update_order():
 def test_delete_order():
     email = unique_email()
     user_resp = client.post(
-        "/users/", json={"name": "Order Delete", "email": email, "password": "test123"}, headers=headers
+        "/users/",
+        json={"name": "Order Delete", "email": email, "password": "test123"},
+        headers=headers,
     )
     user_id = user_resp.json()["id"]
     product = unique_product()
     order_resp = client.post(
-        "/orders/", json={"user_id": user_id, "product_name": product, "amount": 40.0}, headers=headers
+        "/orders/",
+        json={"user_id": user_id, "product_name": product, "amount": 40.0},
+        headers=headers,
     )
     order_id = order_resp.json()["id"]
     response = client.delete(f"/orders/{order_id}", headers=headers)
-    assert response.status_code == 204 
+    assert response.status_code == 204

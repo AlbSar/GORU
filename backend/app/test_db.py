@@ -1,4 +1,4 @@
-from .database import test_connection
+from database import test_connection
 import os
 
 
@@ -15,8 +15,9 @@ def print_db_debug_info():
     print("--------------------------------------------")
 
 
-if test_connection():
-    print("Veritabanı bağlantısı başarılı!")
-else:
-    print("Veritabanı bağlantısı başarısız!")
-    print_db_debug_info()
+if __name__ == "__main__":
+    if test_connection():
+        print("Veritabanı bağlantısı başarılı!")
+    else:
+        print("Veritabanı bağlantısı başarısız!")
+        print_db_debug_info()

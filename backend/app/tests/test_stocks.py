@@ -9,9 +9,7 @@ import sys
 import os
 import uuid
 
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
-)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 from app.main import app
 from fastapi.testclient import TestClient
 
@@ -60,7 +58,7 @@ def test_create_stock_negative_quantity():
 
 
 def test_create_stock_empty_name():
-    print(f"[TEST] test_create_stock_empty_name")
+    print("[TEST] test_create_stock_empty_name")
     response = client.post(
         "/stocks/", json={"product_name": "", "quantity": 5}, headers=headers
     )
@@ -69,7 +67,7 @@ def test_create_stock_empty_name():
 
 
 def test_list_stocks():
-    print(f"[TEST] test_list_stocks")
+    print("[TEST] test_list_stocks")
     response = client.get("/stocks/", headers=headers)
     print(f"[DEBUG] Response: {response.status_code}, {response.text}")
     assert response.status_code == 200
@@ -90,7 +88,7 @@ def test_get_stock():
 
 
 def test_get_nonexistent_stock():
-    print(f"[TEST] test_get_nonexistent_stock")
+    print("[TEST] test_get_nonexistent_stock")
     response = client.get("/stocks/9999999", headers=headers)
     print(f"[DEBUG] Response: {response.status_code}, {response.text}")
     assert response.status_code == 404
@@ -107,7 +105,7 @@ def test_update_stock():
     response = client.put(
         f"/stocks/{stock_id}",
         json={"product_name": new_product, "quantity": 5},
-        headers=headers
+        headers=headers,
     )
     print(f"[DEBUG] Response: {response.status_code}, {response.text}")
     assert response.status_code == 200
@@ -118,8 +116,10 @@ def test_update_stock():
 def test_update_stock_duplicate_product():
     product1 = unique_product()
     product2 = unique_product()
-    print(f"[TEST] test_update_stock_duplicate_product: product1={product1}, product2={product2}")
-    resp1 = client.post(
+    print(
+        f"[TEST] test_update_stock_duplicate_product: product1={product1}, product2={product2}"
+    )
+    client.post(
         "/stocks/", json={"product_name": product1, "quantity": 1}, headers=headers
     )
     resp2 = client.post(
@@ -146,7 +146,7 @@ def test_delete_stock():
 
 
 def test_delete_nonexistent_stock():
-    print(f"[TEST] test_delete_nonexistent_stock")
+    print("[TEST] test_delete_nonexistent_stock")
     response = client.delete("/stocks/9999999", headers=headers)
     print(f"[DEBUG] Response: {response.status_code}, {response.text}")
-    assert response.status_code == 404 
+    assert response.status_code == 404
