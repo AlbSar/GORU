@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: goru
+          POSTGRES_PASSWORD: goru
+          POSTGRES_DB: goru_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U goru" --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql://goru:goru@localhost:5432/goru_db
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      - name: Run Alembic migrations
+        run: |
+          source .venv/bin/activate
+          alembic upgrade head
+        working-directory: ./backend
+      - name: Run tests
+        run: |
+          source .venv/bin/activate
+          pytest backend/app/tests/ 
