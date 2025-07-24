@@ -7,7 +7,7 @@ GORU ERP projesi için FastAPI, React ve PostgreSQL tabanlı backend uygulaması
 
 ... (devamı mevcut README içeriğiyle birleştirilecek)
 
-Aşağıda, **local geliştirme ve test** odaklı bir yol haritası, kopyalanabilir kod örnekleri ve ileriye dönük otomasyon için rehber bulacaksınız.
+
 
 ---
 
@@ -155,4 +155,3 @@ docker-compose up --build
 - **docker-compose.yml**: Local geliştirme ve test ortamı.
 - **Gelecekte**: SSH deploy job’u kolayca eklenebilir.
 
-Her adımda hata alırsanız, hata mesajını paylaşın, hızlıca debug için yardımcı olabilirim!
