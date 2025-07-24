@@ -19,4 +19,4 @@ jobs:
 
       - name: Docker container içinde testleri çalıştır
         run: |
-          docker run --rm goru-backend-test:ci pytest --cov=app --cov-report=xml
+          docker run --rm -e DATABASE_URL=postgresql://goru:goru@host.docker.internal:5432/goru_db goru-backend-test:ci pytest --cov=app --cov-report=xml
