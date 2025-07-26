@@ -9,9 +9,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from ..main import app
-from ..database import Base, get_db
 from .. import models
+from ..database import Base, get_db
+from ..main import app
 
 # Test için in-memory SQLite database
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"

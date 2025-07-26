@@ -3,14 +3,16 @@ Scripts/generate_dummy_data.py modülü testleri.
 Dummy data generation fonksiyonelliğini test eder.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
-import tempfile
 import os
+import tempfile
+from unittest.mock import MagicMock, patch
+
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from ..database import Base
+
 from .. import models
+from ..database import Base
 
 
 class TestGenerateDummyData:

@@ -10,10 +10,11 @@ Bu test suite şunları test eder:
 - Swagger UI uyumluluğu
 """
 
-import pytest
 import os
 import uuid
 from unittest.mock import patch
+
+import pytest
 from fastapi.testclient import TestClient
 
 
@@ -30,6 +31,7 @@ def create_test_app(use_mock: bool = False):
     # App'i yeniden oluştur
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
+
     from ..routes import router
 
     app = FastAPI(

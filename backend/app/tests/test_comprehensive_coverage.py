@@ -3,11 +3,13 @@ Comprehensive Coverage Test Suite.
 Tüm modüllerin coverage'ını artırmak için özel testler.
 """
 
-import pytest
 import os
-from unittest.mock import patch, MagicMock
-from ..main import app
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from ..core.settings import settings
+from ..main import app
 
 
 class TestMainApp:
@@ -198,8 +200,9 @@ class TestSchemas:
 
     def test_stock_create_validation(self):
         """StockCreate validation testi."""
-        from ..schemas import StockCreate
         from pydantic import ValidationError
+
+        from ..schemas import StockCreate
 
         # Negatif quantity
         with pytest.raises(ValidationError):

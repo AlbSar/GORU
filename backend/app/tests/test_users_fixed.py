@@ -3,8 +3,9 @@ Kullanıcı API endpoint testleri (Auth Token'lı).
 CRUD işlemleri ve edge case'leri test eder.
 """
 
-import pytest
 import uuid
+
+import pytest
 
 
 class TestUsersWithAuth:

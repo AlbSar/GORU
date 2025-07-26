@@ -3,9 +3,10 @@ Edge case ve hata durumu testleri (Auth Token'lı).
 Beklenmedik durumlar ve hata yönetimini auth token ile test eder.
 """
 
+import uuid
+
 import pytest
 from fastapi.testclient import TestClient
-import uuid
 
 
 @pytest.mark.auth

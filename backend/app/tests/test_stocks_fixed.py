@@ -3,8 +3,9 @@ Stok API endpoint testleri (Auth Token'lı).
 CRUD işlemleri ve validasyon testlerini içerir.
 """
 
-import pytest
 import uuid
+
+import pytest
 
 
 class TestStocksWithAuth:

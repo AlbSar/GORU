@@ -3,8 +3,10 @@ Utils/Anonymizer modülü testleri.
 Veri anonimleştirme ve pseudonymization fonksiyonlarını test eder.
 """
 
-import pytest
 import hashlib
+
+import pytest
+
 from ..utils.anonymizer import DataAnonymizer
 
 

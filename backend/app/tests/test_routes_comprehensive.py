@@ -3,9 +3,10 @@ Routes Comprehensive Test Suite.
 Tüm CRUD işlemleri, error handling ve edge case'leri kapsar.
 """
 
-import pytest
 import uuid
 from unittest.mock import patch
+
+import pytest
 
 
 class TestUserRoutesCRUD:
