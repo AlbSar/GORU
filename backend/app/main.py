@@ -88,5 +88,7 @@ def health_check():
     return {
         "status": "healthy",
         "mock_enabled": settings.USE_MOCK,
-        "timestamp": "2024-01-01T00:00:00Z",  # Gerçek uygulamada datetime.now() kullanılır
+        "timestamp": (
+            "2024-01-01T00:00:00Z"  # Gerçek uygulamada datetime.now() kullanılır
+        ),
     }

@@ -104,9 +104,7 @@ class TestGenerateDummyData:
 
         # Mock users ve stocks query results
         mock_session.query.return_value.count.return_value = 10
-        mock_session.query.return_value.offset.return_value.first.return_value.id = (
-            1
-        )
+        mock_session.query.return_value.offset.return_value.first.return_value.id = 1
 
         # Test fonksiyon çağrısı
         count = 5

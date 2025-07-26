@@ -44,10 +44,12 @@ def get_db():
     summary="Kullanıcı oluştur / Create user",
     responses={
         201: {
-            "description": "Kullanıcı başarıyla oluşturuldu / User created successfully."
+            "description": "Kullanıcı başarıyla oluşturuldu / "
+            "User created successfully."
         },
         400: {
-            "description": "E-posta zaten kayıtlı veya geçersiz veri / Email already registered or invalid data."
+            "description": "E-posta zaten kayıtlı veya geçersiz veri / "
+            "Email already registered or invalid data."
         },
         401: {"description": "Yetkisiz / Unauthorized"},
     },
@@ -214,7 +216,8 @@ async def delete_user(
     summary="Sipariş oluştur / Create order",
     responses={
         201: {
-            "description": "Sipariş başarıyla oluşturuldu / Order created successfully."
+            "description": "Sipariş başarıyla oluşturuldu / "
+            "Order created successfully."
         },
         404: {"description": "Kullanıcı bulunamadı / User not found."},
         400: {"description": "Geçersiz veri / Invalid data."},
@@ -469,7 +472,8 @@ async def delete_order(
     responses={
         201: {"description": "Stok başarıyla eklendi / Stock created."},
         400: {
-            "description": "Benzersiz ürün adı veya geçersiz veri / Unique product name or invalid data."
+            "description": "Benzersiz ürün adı veya geçersiz veri / "
+            "Unique product name or invalid data."
         },
         401: {"description": "Yetkisiz / Unauthorized"},
     },
@@ -529,7 +533,9 @@ def list_stocks(
     },
 )
 def get_stock(
-    id: int, db: Session = Depends(get_db), user_auth=Depends(get_current_user)
+    id: int, 
+    db: Session = Depends(get_db), 
+    user_auth=Depends(get_current_user)
 ):
     """
     TR: Tek stok kaydını getirir.
@@ -551,7 +557,8 @@ def get_stock(
         200: {"description": "Stok güncellendi / Stock updated."},
         404: {"description": "Stok bulunamadı / Stock not found."},
         400: {
-            "description": "Benzersiz ürün adı veya geçersiz veri / Unique product name or invalid data."
+            "description": "Benzersiz ürün adı veya geçersiz veri / "
+            "Unique product name or invalid data."
         },
         401: {"description": "Yetkisiz / Unauthorized"},
     },
@@ -599,7 +606,9 @@ def update_stock(
     },
 )
 def delete_stock(
-    id: int, db: Session = Depends(get_db), user_auth=Depends(get_current_user)
+    id: int, 
+    db: Session = Depends(get_db), 
+    user_auth=Depends(get_current_user)
 ):
     """
     TR: Stok kaydını siler.

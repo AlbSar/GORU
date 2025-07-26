@@ -127,54 +127,53 @@ class TestMockEndpointsCRUD:
     """Mock endpoint'lerde CRUD işlemleri testleri."""
 
     def test_mock_user_create_and_read(self, mock_enabled_client):
-        """Mock user oluştur ve oku."""
-        # CREATE
-        user_data = {
-            "name": "Mock Integration User",
-            "email": f"integration-{uuid.uuid4()}@mock.com",
+        """Mock kullanıcı oluşturma ve okuma testi."""
+        # Yeni kullanıcı oluştur
+        new_user = {
+            "name": f"Test User {uuid.uuid4()}",
+            "email": f"test-{uuid.uuid4()}@example.com",
             "role": "user",
             "is_active": True,
-            "password": "mock123",
         }
-        create_response = mock_enabled_client.post(
-            "/mock/users/", json=user_data
-        )
-        assert create_response.status_code == 201
-        created_user = create_response.json()
-        user_id = created_user["id"]
+        response = mock_enabled_client.post("/mock/users", json=new_user)
+        assert response.status_code == 201
+        created_user = response.json()
+        assert created_user["name"] == new_user["name"]
+        assert created_user["email"] == new_user["email"]
 
-        # READ
-        read_response = mock_enabled_client.get(f"/mock/users/{user_id}")
-        assert read_response.status_code == 200
-        read_user = read_response.json()
-        assert read_user["name"] == user_data["name"]
-        assert read_user["email"] == user_data["email"]
+        # Oluşturulan kullanıcıyı getir
+        user_id = created_user["id"]
+        get_response = mock_enabled_client.get(f"/mock/users/{user_id}")
+        assert get_response.status_code == 200
+        retrieved_user = get_response.json()
+        assert retrieved_user["id"] == user_id
+        assert retrieved_user["name"] == new_user["name"]
 
     def test_mock_stock_create_and_update(self, mock_enabled_client):
-        """Mock stock oluştur ve güncelle."""
-        # CREATE
-        stock_data = {
-            "product_name": f"Mock Product {uuid.uuid4()}",
+        """Mock stok oluşturma ve güncelleme testi."""
+        # Yeni stok oluştur
+        new_stock = {
+            "product_name": f"Test Product {uuid.uuid4()}",
             "quantity": 100,
-            "unit_price": 29.99,
-            "supplier": "Mock Supplier",
+            "unit_price": 25.99,
+            "supplier": "Test Supplier",
         }
-        create_response = mock_enabled_client.post(
-            "/mock/stocks/", json=stock_data
-        )
-        assert create_response.status_code == 201
-        created_stock = create_response.json()
-        stock_id = created_stock["id"]
+        response = mock_enabled_client.post("/mock/stocks", json=new_stock)
+        assert response.status_code == 201
+        created_stock = response.json()
+        assert created_stock["product_name"] == new_stock["product_name"]
+        assert created_stock["quantity"] == new_stock["quantity"]
 
-        # UPDATE
-        update_data = {"quantity": 200, "unit_price": 39.99}
+        # Stoku güncelle
+        stock_id = created_stock["id"]
+        update_data = {"quantity": 150, "unit_price": 29.99}
         update_response = mock_enabled_client.put(
             f"/mock/stocks/{stock_id}", json=update_data
         )
         assert update_response.status_code == 200
         updated_stock = update_response.json()
-        assert updated_stock["quantity"] == 200
-        assert updated_stock["unit_price"] == 39.99
+        assert updated_stock["quantity"] == 150
+        assert updated_stock["unit_price"] == 29.99
 
     def test_mock_order_lifecycle(self, mock_enabled_client):
         """Mock order yaşam döngüsü testi."""

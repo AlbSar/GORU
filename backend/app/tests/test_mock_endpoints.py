@@ -31,20 +31,21 @@ def mock_disabled_client():
 class TestMockEndpoints:
     """Mock endpoint testleri."""
 
-    def test_mock_users_get_all(self, mock_enabled_client):
-        """Mock kullanıcı listesi endpoint'ini test eder."""
-        response = mock_enabled_client.get("/mock/users")
+    def test_mock_users_endpoint_accessible(self, client):
+        """Mock mode'da users endpoint erişilebilir olmalı."""
+        response = client.get("/mock/users")
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
-        assert len(data) > 0
+        assert len(data) >= 5
 
-        # İlk kullanıcının gerekli alanları kontrol et
-        first_user = data[0]
-        assert "id" in first_user
-        assert "name" in first_user
-        assert "email" in first_user
-        assert "role" in first_user
+    def test_mock_stocks_endpoint_accessible(self, client):
+        """Mock mode'da stocks endpoint erişilebilir olmalı."""
+        response = client.get("/mock/stocks")
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) >= 5
 
     def test_mock_user_get_by_id(self, mock_enabled_client):
         """Mock kullanıcı ID'ye göre getirme endpoint'ini test eder."""

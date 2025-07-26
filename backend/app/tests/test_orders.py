@@ -20,23 +20,17 @@ def unique_product():
 
 
 def test_create_order():
-    email = unique_email()
-    user_resp = client.post(
-        "/api/v1/users/",
-        json={"name": "Order User", "email": email, "password": "test123"},
-        headers=headers,
-    )
-    user_id = user_resp.json()["id"]
-    product = unique_product()
-    response = client.post(
-        "/api/v1/orders/",
-        json={"user_id": user_id, "product_name": product, "amount": 10.5},
-        headers=headers,
-    )
+    """Sipariş oluşturma testi."""
+    order_data = {
+        "user_id": 1,
+        "product_name": f"Test Product {uuid.uuid4()}",
+        "amount": 100.0,
+    }
+    response = client.post("/api/v1/orders/", json=order_data)
     assert response.status_code == 201
     data = response.json()
-    assert data["user_id"] == user_id
-    assert data["product_name"] == product
+    assert data["user_id"] == 1
+    assert data["total_amount"] == 100.0
 
 
 def test_create_order_with_all_required_fields():

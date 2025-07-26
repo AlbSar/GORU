@@ -38,7 +38,9 @@ mock_router = APIRouter(
 )
 def get_mock_users(
     skip: int = Query(0, ge=0, description="Atlanacak kayıt sayısı"),
-    limit: int = Query(100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"),
+    limit: int = Query(
+        100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"
+    ),
 ):
     """Mock kullanıcıları listele."""
     users = MockUserService.get_all()
@@ -127,7 +129,9 @@ async def delete_mock_user(
 )
 def get_mock_orders(
     skip: int = Query(0, ge=0, description="Atlanacak kayıt sayısı"),
-    limit: int = Query(100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"),
+    limit: int = Query(
+        100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"
+    ),
 ):
     """Mock siparişleri listele."""
     orders = MockOrderService.get_all()
@@ -216,7 +220,9 @@ async def delete_mock_order(
 )
 def get_mock_stocks(
     skip: int = Query(0, ge=0, description="Atlanacak kayıt sayısı"),
-    limit: int = Query(100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"),
+    limit: int = Query(
+        100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"
+    ),
 ):
     """Mock stokları listele."""
     stocks = MockStockService.get_all()

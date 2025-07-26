@@ -131,7 +131,8 @@ def test_update_stock_duplicate_product():
     product1 = unique_product()
     product2 = unique_product()
     print(
-        f"[TEST] test_update_stock_duplicate_product: product1={product1}, product2={product2}"
+        f"[TEST] test_update_stock_duplicate_product: "
+        f"product1={product1}, product2={product2}"
     )
     client.post(
         "/api/v1/stocks/",
