@@ -88,11 +88,8 @@ class Settings(BaseSettings):
                 return False
             else:
                 # Geçersiz değer için default false
-                print(
-                    "Geçersiz USE_MOCK değeri: '{}'. Default false kullanılıyor.".format(
-                        v
-                    )
-                )
+                print("Geçersiz USE_MOCK değeri: '{}'. "
+                      "Default false kullanılıyor.".format(v))
                 return False
 
         return False

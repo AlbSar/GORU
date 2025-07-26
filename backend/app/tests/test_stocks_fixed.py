@@ -1,10 +1,13 @@
 """
-Stok API endpoint testleri (Auth Token'lı).
-CRUD işlemleri ve validasyon testlerini içerir.
+Stok endpoint'leri için test modülü.
 """
 
 import uuid
+from fastapi.testclient import TestClient
 
+from ..main import app
+
+client = TestClient(app)
 
 
 class TestStocksWithAuth:

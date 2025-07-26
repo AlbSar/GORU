@@ -1,9 +1,6 @@
 """
-Utils/Anonymizer modülü testleri.
-Veri anonimleştirme ve pseudonymization fonksiyonlarını test eder.
+Data anonymizer utility testleri.
 """
-
-
 
 from ..utils.anonymizer import DataAnonymizer
 

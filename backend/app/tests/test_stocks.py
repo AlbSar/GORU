@@ -1,26 +1,18 @@
 """
-Stok Testleri / Stock Tests
-
-TR: Stok CRUD endpointleri için birim ve edge-case testleri.
-EN: Unit and edge-case tests for Stock CRUD endpoints.
+Stock endpoint testleri.
 """
 
-import os
-import sys
-import uuid
-
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
-)
-from app.main import app
+import pytest
 from fastapi.testclient import TestClient
+
+from ..main import app
 
 client = TestClient(app)
 headers = {"Authorization": "Bearer secret-token"}
 
 
 def unique_product():
-    return f"Product_{uuid.uuid4()}"
+    return f"Product_{pytest.uuid4()}"
 
 
 def test_create_stock():

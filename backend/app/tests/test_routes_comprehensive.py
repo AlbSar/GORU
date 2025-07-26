@@ -1,11 +1,16 @@
 """
-Routes Comprehensive Test Suite.
-Tüm CRUD işlemleri, error handling ve edge case'leri kapsar.
+Kapsamlı route testleri.
+Tüm endpoint'leri ve edge case'leri test eder.
 """
 
 import uuid
 from unittest.mock import patch
 
+from fastapi.testclient import TestClient
+
+from ..main import app
+
+client = TestClient(app)
 
 
 class TestUserRoutesCRUD:

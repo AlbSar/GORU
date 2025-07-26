@@ -1,21 +1,23 @@
 """
-Otomatik sahte veri üretim scripti.
-Faker kullanarak test ve geliştirme ortamı için sahte veriler oluşturur.
+Dummy data generator script.
+Test ve development için sahte veri oluşturur.
 """
 
+import os
 import sys
 from pathlib import Path
 
-# Parent directory'yi path'e ekle
-sys.path.append(str(Path(__file__).parent.parent))
+# Add parent directory to path for imports
+sys.path.append(str(Path(__file__).parent.parent.parent))
 
 import random
 
 from faker import Faker
 from sqlalchemy.orm import Session
 
-from .. import models
-from ..database import SessionLocal
+from app.models import Order, Stock, User
+from app.database import engine
+from app.schemas import OrderCreate, StockCreate, UserCreate
 
 fake = Faker("tr_TR")
 
@@ -26,7 +28,7 @@ def create_dummy_users(db: Session, count: int = 50):
 
     users = []
     for i in range(count):
-        user = models.User(
+        user = User(
             name=fake.name(),
             email=fake.unique.email(),
             role=random.choice(["admin", "user", "manager", "viewer"]),
@@ -66,7 +68,7 @@ def create_dummy_stocks(db: Session, count: int = 100):
             f"{fake.company()} {category} {fake.color_name()} {fake.word()}"
         )
 
-        stock = models.Stock(
+        stock = Stock(
             product_name=product_name,
             quantity=random.randint(0, 1000),
             unit_price=round(random.uniform(5.0, 2000.0), 2),
@@ -91,7 +93,7 @@ def create_dummy_orders(
         user = random.choice(users)
 
         # Order oluştur
-        order = models.Order(
+        order = Order(
             user_id=user.id,
             total_amount=0,  # Hesaplanacak
             status=random.choice(
@@ -114,7 +116,7 @@ def create_dummy_orders(
             total_price = quantity * unit_price
             total_amount += total_price
 
-            order_item = models.OrderItem(
+            order_item = OrderItem(
                 order=order,
                 product_id=stock.id,
                 quantity=quantity,
@@ -138,7 +140,7 @@ def create_dummy_products(db: Session, count: int = 200):
 
     products = []
     for i in range(count):
-        product = models.Product(
+        product = Product(
             name=f"{fake.company()} {fake.word()} {fake.color_name()}",
             description=fake.text(max_nb_chars=200),
             price=round(random.uniform(10.0, 5000.0), 2),
@@ -169,11 +171,11 @@ def clean_existing_data(db: Session):
     print("🧹 Cleaning existing dummy data...")
 
     # Order items önce silinmeli (foreign key)
-    db.query(models.OrderItem).delete()
-    db.query(models.Order).delete()
-    db.query(models.Stock).delete()
-    db.query(models.Product).delete()
-    db.query(models.User).delete()
+    db.query(OrderItem).delete()
+    db.query(Order).delete()
+    db.query(Stock).delete()
+    db.query(Product).delete()
+    db.query(User).delete()
 
     db.commit()
     print("✅ Existing data cleaned!")

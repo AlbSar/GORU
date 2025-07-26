@@ -1,12 +1,11 @@
-import os
-import sys
-import uuid
+"""
+Order endpoint testleri.
+"""
 
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
-)
-from app.main import app
+import uuid
 from fastapi.testclient import TestClient
+
+from ..main import app
 
 client = TestClient(app)
 headers = {"Authorization": "Bearer secret-token"}

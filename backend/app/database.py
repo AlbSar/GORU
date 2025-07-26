@@ -1,6 +1,10 @@
+"""
+Database bağlantısı ve session yönetimi.
+"""
+
 from sqlalchemy import create_engine, text
-from sqlalchemy.exc import OperationalError
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 from .core.settings import settings
 
@@ -26,13 +30,11 @@ def get_db():
 
 
 def test_connection():
-    """
-    Veritabanı bağlantısını test eder. Bağlantı başarılıysa True, değilse False döner.
-    """
+    """Database bağlantısını test eder."""
     try:
-        with engine.connect() as connection:
-            connection.execute(text("SELECT 1"))  # text() ile kullanılmalı
+        db = next(get_db())
+        db.execute(text("SELECT 1"))
         return True
-    except OperationalError as e:
-        print(f"Veritabanı bağlantı hatası: {e}")
+    except Exception as e:
+        print(f"Database bağlantı hatası: {e}")
         return False

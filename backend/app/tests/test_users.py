@@ -3,11 +3,9 @@ User endpoint testleri.
 """
 
 
-
 def unique_email():
     """Benzersiz email oluştur."""
     import uuid
-
     return f"test-{uuid.uuid4()}@example.com"
 
 

@@ -13,18 +13,16 @@ from .routes import router
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description=(
-        "GORU ERP Backend API\n\n"
-        "## Mock Mode\n"
-        "USE_MOCK environment variable ile mock endpoint'ler aktif edilebilir:\n"
-        "- USE_MOCK=true: Mock endpoint'ler (/mock/*) aktif\n"
-        "- USE_MOCK=false: Sadece gerçek endpoint'ler aktif\n\n"
-        "## Endpoints\n"
-        "- /api/v1/*: Gerçek API endpoint'leri (auth gerekli)\n"
-        "- /mock/*: Mock API endpoint'leri (USE_MOCK=true ise)"
+        "GORU Backend API - Mock Mode ve Endpoints\n\n"
+        "Mock Mode: USE_MOCK=true ise /mock/ prefix'i ile "
+        "mock endpoint'ler aktif olur.\n"
+        "Gerçek Endpoints: /api/v1/ prefix'i ile gerçek "
+        "veritabanı endpoint'leri.\n\n"
+        "Mock Endpoints: /mock/users, /mock/stocks, /mock/orders\n"
+        "Real Endpoints: /api/v1/users, /api/v1/stocks, /api/v1/orders"
     ),
-    debug=settings.DEBUG,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
     version="1.0.0",
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
 
 # CORS middleware yapılandırması
@@ -71,7 +69,9 @@ def read_root():
         "version": "1.0.0",
         "mock_mode": settings.USE_MOCK,
         "api_prefix": settings.API_V1_STR,
-        "mock_prefix": settings.MOCK_API_PREFIX if settings.USE_MOCK else None,
+        "mock_prefix": (
+            settings.MOCK_API_PREFIX if settings.USE_MOCK else None
+        ),
         "environment": settings.APP_ENV,
         "debug": settings.DEBUG,
     }

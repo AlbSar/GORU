@@ -32,19 +32,17 @@ mock_router = APIRouter(
 
 @mock_router.get(
     "/users",
+    summary="Mock kullanıcıları listele",
+    description="Mock veritabanından tüm kullanıcıları getirir",
     response_model=List[Dict[str, Any]],
-    summary="Mock kullanıcı listesini getir",
-    description="Tüm mock kullanıcıları listeler. Gerçek veritabanı yerine in-memory data kullanır.",
 )
-async def get_mock_users(
+def get_mock_users(
     skip: int = Query(0, ge=0, description="Atlanacak kayıt sayısı"),
-    limit: int = Query(
-        100, ge=1, le=1000, description="Döndürülecek maksimum kayıt sayısı"
-    ),
+    limit: int = Query(100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"),
 ):
-    """Mock kullanıcı listesini döner."""
+    """Mock kullanıcıları listele."""
     users = MockUserService.get_all()
-    return users[skip : skip + limit]
+    return users[skip:skip + limit]
 
 
 @mock_router.get(
@@ -123,19 +121,17 @@ async def delete_mock_user(
 
 @mock_router.get(
     "/orders",
+    summary="Mock siparişleri listele",
+    description="Mock veritabanından tüm siparişleri getirir",
     response_model=List[Dict[str, Any]],
-    summary="Mock sipariş listesini getir",
-    description="Tüm mock siparişleri listeler.",
 )
-async def get_mock_orders(
+def get_mock_orders(
     skip: int = Query(0, ge=0, description="Atlanacak kayıt sayısı"),
-    limit: int = Query(
-        100, ge=1, le=1000, description="Döndürülecek maksimum kayıt sayısı"
-    ),
+    limit: int = Query(100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"),
 ):
-    """Mock sipariş listesini döner."""
+    """Mock siparişleri listele."""
     orders = MockOrderService.get_all()
-    return orders[skip : skip + limit]
+    return orders[skip:skip + limit]
 
 
 @mock_router.get(
@@ -214,19 +210,17 @@ async def delete_mock_order(
 
 @mock_router.get(
     "/stocks",
+    summary="Mock stokları listele",
+    description="Mock veritabanından tüm stokları getirir",
     response_model=List[Dict[str, Any]],
-    summary="Mock stok listesini getir",
-    description="Tüm mock stokları listeler.",
 )
-async def get_mock_stocks(
+def get_mock_stocks(
     skip: int = Query(0, ge=0, description="Atlanacak kayıt sayısı"),
-    limit: int = Query(
-        100, ge=1, le=1000, description="Döndürülecek maksimum kayıt sayısı"
-    ),
+    limit: int = Query(100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"),
 ):
-    """Mock stok listesini döner."""
+    """Mock stokları listele."""
     stocks = MockStockService.get_all()
-    return stocks[skip : skip + limit]
+    return stocks[skip:skip + limit]
 
 
 @mock_router.get(

@@ -17,115 +17,42 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
+from ..core.settings import Settings
 
-def create_test_app(use_mock: bool = False):
-    """Test için dinamik app oluştur."""
-    # Environment variable'ı ayarla
-    os.environ["USE_MOCK"] = str(use_mock).lower()
 
-    # Settings'i yeniden yükle
-    from ..core.settings import Settings
-
-    settings = Settings()
-
-    # App'i yeniden oluştur
+def create_test_app():
+    """Test için FastAPI app instance'ı oluştur."""
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
 
-    from ..routes import router
-
-    app = FastAPI(
-        title=settings.PROJECT_NAME,
-        description="""
-        GORU ERP Backend API
-        
-        ## Mock Mode
-        USE_MOCK environment variable ile mock endpoint'ler aktif edilebilir:
-        - USE_MOCK=true: Mock endpoint'ler (/mock/*) aktif
-        - USE_MOCK=false: Sadece gerçek endpoint'ler aktif
-        
-        ## Endpoints
-        - /api/v1/*: Gerçek API endpoint'leri (auth gerekli)
-        - /mock/*: Mock API endpoint'leri (USE_MOCK=true ise)
-        """,
-        debug=settings.DEBUG,
-        openapi_url=f"{settings.API_V1_STR}/openapi.json",
-        version="1.0.0",
-    )
-
-    # CORS middleware yapılandırması
-    app.add_middleware(
+    test_app = FastAPI()
+    test_app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.get_cors_origins(),
+        allow_origins=["*"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
-    # Ana router'ı dahil et (gerçek API endpoint'leri)
-    app.include_router(router, prefix=settings.API_V1_STR)
-
-    # Mock router'ı koşullu olarak dahil et
-    if settings.USE_MOCK:
-        try:
-            from ..mock_routes import mock_router
-
-            app.include_router(mock_router)
-        except ImportError as e:
-            print(f"❌ Mock router import hatası: {e}")
-        except Exception as e:
-            print(f"❌ Mock router dahil etme hatası: {e}")
-
-    @app.get("/", tags=["System"])
-    def read_root():
-        """
-        API root endpoint.
-
-        Returns:
-            dict: API durumu ve konfigürasyon bilgileri
-        """
-        return {
-            "message": "GORU ERP Backend API çalışıyor!",
-            "version": "1.0.0",
-            "mock_mode": settings.USE_MOCK,
-            "api_prefix": settings.API_V1_STR,
-            "mock_prefix": (
-                settings.MOCK_API_PREFIX if settings.USE_MOCK else None
-            ),
-            "environment": settings.APP_ENV,
-            "debug": settings.DEBUG,
-        }
-
-    @app.get("/health", tags=["System"])
-    def health_check():
-        """
-        Health check endpoint.
-
-        Returns:
-            dict: Sistem sağlık durumu
-        """
-        return {
-            "status": "healthy",
-            "mock_enabled": settings.USE_MOCK,
-            "timestamp": "2024-01-01T00:00:00Z",  # Gerçek uygulamada datetime.now() kullanılır
-        }
-
-    return app
+    return test_app
 
 
 @pytest.fixture
 def mock_enabled_client():
-    """Mock aktif olan client fixture."""
-    app = create_test_app(use_mock=True)
-    with TestClient(app) as client:
+    """USE_MOCK=true ile test client."""
+    with patch.dict(os.environ, {"USE_MOCK": "true"}):
+        # Yeni app instance oluştur
+        from ..main import app as test_app
+        client = TestClient(test_app)
         yield client
 
 
 @pytest.fixture
 def mock_disabled_client():
-    """Mock devre dışı olan client fixture."""
-    app = create_test_app(use_mock=False)
-    with TestClient(app) as client:
+    """USE_MOCK=false ile test client."""
+    with patch.dict(os.environ, {"USE_MOCK": "false"}):
+        # Yeni app instance oluştur
+        from ..main import app as test_app
+        client = TestClient(test_app)
         yield client
 
 
@@ -432,7 +359,6 @@ class TestEnvironmentToggling:
     def test_environment_variable_precedence(self):
         """Environment variable öncelik sırası."""
         # Default false
-        from ..core.settings import Settings
         default_settings = Settings()
         assert hasattr(default_settings, 'USE_MOCK')
         
@@ -448,7 +374,6 @@ class TestEnvironmentToggling:
     @patch.dict(os.environ, {'USE_MOCK': 'invalid_value'})
     def test_invalid_environment_value_handling(self):
         """Geçersiz environment value handling."""
-        from ..core.settings import Settings
         
         # Pydantic boolean parsing
         try:
@@ -461,7 +386,6 @@ class TestEnvironmentToggling:
 
     def test_boolean_parsing_variations(self):
         """Farklı boolean değer formatları test edilmeli."""
-        from ..core.settings import Settings
         
         # True değerleri
         true_values = ['true', 'True', 'TRUE', '1', 'yes', 'Yes', 'YES', 'on', 'On', 'ON']

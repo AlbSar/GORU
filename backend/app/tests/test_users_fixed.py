@@ -1,10 +1,13 @@
 """
-Kullanıcı API endpoint testleri (Auth Token'lı).
-CRUD işlemleri ve edge case'leri test eder.
+User endpoint testleri (Auth Token'lı).
 """
 
 import uuid
+from fastapi.testclient import TestClient
 
+from ..main import app
+
+client = TestClient(app)
 
 
 class TestUsersWithAuth:
