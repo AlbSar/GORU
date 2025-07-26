@@ -1,10 +1,10 @@
-import sys
 import os
+import sys
 import uuid
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
-from fastapi.testclient import TestClient
 from app.main import app
+from fastapi.testclient import TestClient
 
 client = TestClient(app)
 headers = {"Authorization": "Bearer secret-token"}
@@ -21,14 +21,14 @@ def unique_product():
 def test_create_order():
     email = unique_email()
     user_resp = client.post(
-        "/users/",
+        "/api/v1/users/",
         json={"name": "Order User", "email": email, "password": "test123"},
         headers=headers,
     )
     user_id = user_resp.json()["id"]
     product = unique_product()
     response = client.post(
-        "/orders/",
+        "/api/v1/orders/",
         json={"user_id": user_id, "product_name": product, "amount": 10.5},
         headers=headers,
     )
@@ -45,14 +45,14 @@ def test_create_order_with_all_required_fields():
     """
     email = unique_email()
     user_resp = client.post(
-        "/users/",
+        "/api/v1/users/",
         json={"name": "Order User3", "email": email, "password": "test123"},
         headers=headers,
     )
     user_id = user_resp.json()["id"]
     product = unique_product()
     response = client.post(
-        "/orders/",
+        "/api/v1/orders/",
         json={"user_id": user_id, "product_name": product, "amount": 15.0},
         headers=headers,
     )
@@ -69,13 +69,13 @@ def test_create_order_with_all_required_fields():
 #     """
 #     email = unique_email()
 #     user_resp = client.post(
-#         "/users/", json={"name": "Order User2", "email": email, "password": "test123"}, headers=headers
+#         "/api/v1/users/", json={"name": "Order User2", "email": email, "password": "test123"}, headers=headers
 #     )
 #     user_id = user_resp.json()["id"]
 #
 #     # Eksik ürün adı (missing product_name)
 #     response = client.post(
-#         "/orders/", json={"user_id": user_id, "amount": 10.5}, headers=headers
+#         "/api/v1/orders/", json={"user_id": user_id, "amount": 10.5}, headers=headers
 #     )
 #     assert response.status_code == 422
 #     # Hata mesajı kontrolü (Error message check)
@@ -83,7 +83,7 @@ def test_create_order_with_all_required_fields():
 #
 #     # Eksik amount (missing amount)
 #     response = client.post(
-#         "/orders/", json={"user_id": user_id, "product_name": unique_product()}, headers=headers
+#         "/api/v1/orders/", json={"user_id": user_id, "product_name": unique_product()}, headers=headers
 #     )
 #     assert response.status_code == 422
 #     assert "total_amount" in response.text and "order_items" in response.text
@@ -92,13 +92,13 @@ def test_create_order_with_all_required_fields():
 def test_create_order_invalid_amount():
     email = unique_email()
     user_resp = client.post(
-        "/users/",
+        "/api/v1/users/",
         json={"name": "Order User3", "email": email, "password": "test123"},
         headers=headers,
     )
     user_id = user_resp.json()["id"]
     response = client.post(
-        "/orders/",
+        "/api/v1/orders/",
         json={"user_id": user_id, "product_name": unique_product(), "amount": -5},
         headers=headers,
     )
@@ -107,7 +107,7 @@ def test_create_order_invalid_amount():
 
 def test_create_order_nonexistent_user():
     response = client.post(
-        "/orders/",
+        "/api/v1/orders/",
         json={"user_id": 9999999, "product_name": unique_product(), "amount": 10.5},
         headers=headers,
     )
@@ -115,12 +115,12 @@ def test_create_order_nonexistent_user():
 
 
 def test_get_nonexistent_order():
-    response = client.get("/orders/9999999", headers=headers)
+    response = client.get("/api/v1/orders/9999999", headers=headers)
     assert response.status_code == 404
 
 
 def test_list_orders():
-    response = client.get("/orders/", headers=headers)
+    response = client.get("/api/v1/orders/", headers=headers)
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
@@ -128,19 +128,19 @@ def test_list_orders():
 def test_get_order():
     email = unique_email()
     user_resp = client.post(
-        "/users/",
+        "/api/v1/users/",
         json={"name": "Order Detail", "email": email, "password": "test123"},
         headers=headers,
     )
     user_id = user_resp.json()["id"]
     product = unique_product()
     order_resp = client.post(
-        "/orders/",
+        "/api/v1/orders/",
         json={"user_id": user_id, "product_name": product, "amount": 20.0},
         headers=headers,
     )
     order_id = order_resp.json()["id"]
-    response = client.get(f"/orders/{order_id}", headers=headers)
+    response = client.get(f"/api/v1/orders/{order_id}", headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == order_id
@@ -149,21 +149,21 @@ def test_get_order():
 def test_update_order():
     email = unique_email()
     user_resp = client.post(
-        "/users/",
+        "/api/v1/users/",
         json={"name": "Order Update", "email": email, "password": "test123"},
         headers=headers,
     )
     user_id = user_resp.json()["id"]
     product = unique_product()
     order_resp = client.post(
-        "/orders/",
+        "/api/v1/orders/",
         json={"user_id": user_id, "product_name": product, "amount": 30.0},
         headers=headers,
     )
     order_id = order_resp.json()["id"]
     new_product = unique_product()
     response = client.put(
-        f"/orders/{order_id}",
+        f"/api/v1/orders/{order_id}",
         json={"user_id": user_id, "product_name": new_product, "amount": 35.0},
         headers=headers,
     )
@@ -174,17 +174,17 @@ def test_update_order():
 def test_delete_order():
     email = unique_email()
     user_resp = client.post(
-        "/users/",
+        "/api/v1/users/",
         json={"name": "Order Delete", "email": email, "password": "test123"},
         headers=headers,
     )
     user_id = user_resp.json()["id"]
     product = unique_product()
     order_resp = client.post(
-        "/orders/",
+        "/api/v1/orders/",
         json={"user_id": user_id, "product_name": product, "amount": 40.0},
         headers=headers,
     )
     order_id = order_resp.json()["id"]
-    response = client.delete(f"/orders/{order_id}", headers=headers)
+    response = client.delete(f"/api/v1/orders/{order_id}", headers=headers)
     assert response.status_code == 204

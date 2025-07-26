@@ -1,0 +1,107 @@
+# GORU ERP Backend - Development Configuration
+
+# Uygulama Ayarları
+app:
+  name: "GORU ERP Backend"
+  version: "1.0.0"
+  debug: true
+  environment: "development"
+  log_level: "debug"
+
+# API Konfigürasyonu
+api:
+  prefix: "/api/v1"
+  title: "GORU ERP API"
+  description: "Modern ERP sistemi için RESTful API"
+  docs_url: "/docs"
+  openapi_url: "/api/v1/openapi.json"
+
+# Veritabanı Ayarları
+database:
+  url: "postgresql://goru:goru@localhost:5432/goru_db"
+  test_url: "postgresql://goru:goru@localhost:5432/goru_test_db"
+  echo: true  # SQL queries'i log'la
+  pool_size: 5
+  max_overflow: 10
+
+# Mock Sistemi
+mock:
+  enabled: false
+  api_prefix: "/mock"
+  data_size:
+    users: 50
+    orders: 200
+    stocks: 100
+    products: 200
+
+# Güvenlik Ayarları
+security:
+  secret_key: "dev-secret-key-change-in-production"
+  algorithm: "HS256"
+  access_token_expire_minutes: 30
+  
+# CORS Ayarları
+cors:
+  origins:
+    - "http://localhost:3000"  # React frontend
+    - "http://localhost:8080"  # Vue frontend
+    - "http://127.0.0.1:3000"
+    - "http://127.0.0.1:8080"
+  allow_credentials: true
+  allow_methods: ["*"]
+  allow_headers: ["*"]
+
+# Test Ayarları
+testing:
+  database_url: "sqlite:///./test.db"
+  coverage:
+    min_percentage: 80
+    exclude:
+      - "*/migrations/*"
+      - "*/tests/*"
+      - "*/venv/*"
+      - "*/scripts/*"
+
+# Linting ve Formatting
+code_quality:
+  black:
+    line_length: 88
+    target_version: "py39"
+  isort:
+    profile: "black"
+    line_length: 88
+  flake8:
+    max_line_length: 88
+  pylint:
+    max_line_length: 88
+
+# Development Scripts
+scripts:
+  setup: "pip install -r requirements.txt"
+  test: "pytest --cov=app --cov-report=term-missing"
+  lint: "flake8 app/ && black --check app/ && isort --check-only app/"
+  format: "black app/ && isort app/"
+  run: "uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+  migrations: "alembic upgrade head"
+  seed_data: "python app/scripts/generate_dummy_data.py"
+
+# Docker Ayarları
+docker:
+  image_name: "goru-backend"
+  tag: "dev"
+  port: 8000
+  volumes:
+    - "./:/app"
+  environment:
+    - "DATABASE_URL=postgresql://goru:goru@db:5432/goru_db"
+    - "DEBUG=true"
+
+# CI/CD Ayarları
+ci_cd:
+  python_version: "3.11"
+  postgres_version: "15"
+  test_commands:
+    - "pytest --cov=app --cov-report=xml"
+    - "black --check app/"
+    - "flake8 app/"
+  coverage_threshold: 80 

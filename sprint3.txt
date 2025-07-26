@@ -1,0 +1,107 @@
+SPRINT 3 - PLANLANAN MADDELER
+====================================
+
+HEDEF: Coverage %90+ + Production Ready System
+
+PHASE 1: CRITICAL FIXES & COVERAGE BOOST (Hafta 1)
+====================================
+
+1. MOCK ROUTER INTEGRATION (PRIORITY 1)
+❌ main.py'de mock router conditional loading bug fix
+❌ Mock endpoint'lerin Swagger UI'da görünmesi ve doğru şekilde toggle edilmesi (USE_MOCK)
+❌ Mock ve gerçek endpoint'lerin birlikte/ayrı çalışabilirliği
+❌ Mock router integration ve edge-case testleri
+❌ Mock endpointler için minimum %90 coverage
+
+2. ROUTES COVERAGE BOOST (PRIORITY 2)
+❌ app/routes.py coverage %90+ (şu an %64)
+❌ CRUD + order lifecycle complete testler (create/update/delete/status)
+❌ Error handling: 404, 422, 500 edge-case testleri
+❌ Database constraint & transaction/rollback senaryoları
+❌ Authentication & permission senaryoları (token, yetki, forbidden)
+❌ Flake8 line-too-long başta olmak üzere lint hatalarının çözümü
+
+PHASE 2: INFRASTRUCTURE COMPLETION & DEEP TESTING (Hafta 2)
+====================================
+
+3. DATABASE TESTING & COVERAGE (PRIORITY 3)
+❌ app/database.py için %90+ coverage (şu an %48)
+❌ Connection, session lifecycle, context/rollback, error/timeout/invalid DB testleri
+❌ get_db dependency injection ve connection pool testleri
+❌ Alembic migration testleri ve fixture kullanımı
+
+4. UTILS & SCRIPTS TESTING (PRIORITY 4)
+❌ app/utils/anonymizer.py'deki her fonksiyonun edge-case ve performance testleri, %90+ coverage
+❌ Tüm scripts (generate_dummy_data.py, create_tables.py, seed_demo_data.py) için execution & error handling testleri
+❌ Script coverage %90+
+
+PHASE 3: PRODUCTION READINESS, PERFORMANCE & SECURITY (Hafta 3)
+====================================
+
+5. PERFORMANCE & SECURITY MIDDLEWARE (PRIORITY 5)
+❌ API rate limiting middleware implementasyonu
+❌ Security headers (CORS, CSP, HSTS) ve logging middleware
+❌ Request/response logging
+❌ Performance monitoring endpoint ve basic load test script (Locust/pytest-benchmark)
+❌ Database query optimizasyonu & caching layer temel entegrasyonu
+
+6. ADVANCED TESTING & DEVOPS (PRIORITY 6-7)
+❌ Integration testler (end-to-end, regression, API contract)
+❌ Load/stress/security (SQLi, XSS, CSRF) testleri
+❌ Chaos engineering, browser automation (opsiyonel)
+❌ Docker multi-stage build, prod deploy scripts, Kubernetes manifestleri
+❌ Monitoring/alerting (Prometheus/Grafana), log aggregation (ELK), backup, disaster recovery
+❌ OpenAPI/Swagger docs güncelleme, API usage örnekleri, devops dokümantasyon
+
+7. CODE QUALITY ENHANCEMENT & DOCUMENTATION (PRIORITY 8)
+❌ %100 type hint ve docstring coverage
+❌ Complexity analysis, dependency vulnerability scanning, code duplication, refactoring
+❌ Architecture documentation (şema, diagram, teknik dökümantasyon)
+
+BAŞARI KRİTERLERİ (Sprint 3 Success Criteria)
+====================================
+
+MUST HAVE:
+✅ %90+ toplam test coverage
+✅ Mock router ve routes coverage tamam
+✅ Database coverage %90+
+✅ Zero critical lint error
+
+SHOULD HAVE:
+✅ Performance/security middleware ve basic monitoring
+✅ Prod deploy automation
+✅ Güncel, kapsamlı dokümantasyon
+
+COULD HAVE:
+✅ Load/chaos/advanced security testing
+✅ Monitoring & alerting dashboard
+✅ Advanced production deployment (Kubernetes, failover, disaster recovery)
+
+ESTIMATED TIMELINE
+====================================
+Hafta 1: Critical Fixes & Coverage Boost (Mock router + Routes coverage)
+Hafta 2: Infrastructure & Deep Testing (Database + Utils/Scripts testing)
+Hafta 3: Production Readiness (Performance + Security + DevOps)
+
+SPRINT 3 RISK FACTORS
+====================================
+⚠️ Mock router integration complexity
+⚠️ Database testing setup difficulty
+⚠️ Performance optimization time requirement
+⚠️ Production deployment infrastructure
+
+SPRINT 3 TEAM RESPONSIBILITIES
+====================================
+🧑‍💻 Backend Developer: Routes coverage + Database testing
+🔧 DevOps: CI/CD optimization + Production deployment
+🧪 QA Engineer: Integration testing + Performance testing
+📝 Tech Writer: Documentation completion
+
+SPRINT 3 DELIVERABLES
+====================================
+📦 Production-ready backend API
+📊 %90+ test coverage
+🔒 Security-hardened system
+📈 Performance monitoring setup
+📚 Complete documentation
+🚀 Deployment automation 

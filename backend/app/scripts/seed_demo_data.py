@@ -1,15 +1,17 @@
-from ..database import SessionLocal, engine, Base
+import datetime
+
 from models import (
-    User,
     Address,
     Category,
-    Product,
     Order,
     OrderItem,
+    Product,
     Stock,
     StockMovement,
+    User,
 )
-import datetime
+
+from ..database import Base, SessionLocal, engine
 
 Base.metadata.create_all(bind=engine)
 

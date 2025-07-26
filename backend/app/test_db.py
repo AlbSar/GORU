@@ -1,5 +1,6 @@
-from database import test_connection
 import os
+
+from database import test_connection
 
 
 def print_db_debug_info():

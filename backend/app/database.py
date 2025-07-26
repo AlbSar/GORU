@@ -1,19 +1,28 @@
-import os
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.exc import OperationalError
-from dotenv import load_dotenv
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-# .env dosyasını yükle
-load_dotenv()
+from .core.settings import settings
 
-# PostgreSQL bağlantı stringini .env'den al
-DATABASE_URL = os.getenv("DATABASE_URL")
+# PostgreSQL bağlantı stringini settings'den al
+DATABASE_URL = settings.DATABASE_URL
 
 # SQLAlchemy engine ve session
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+
+def get_db():
+    """
+    Database session dependency.
+    FastAPI dependency injection için kullanılır.
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 def test_connection():

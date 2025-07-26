@@ -4,16 +4,17 @@ ERP sistemi için kullanıcı, sipariş ve stok yönetimi CRUD işlemlerini sağ
 RESTful API standartlarına uygun endpoint'ler içerir.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, status
-from sqlalchemy.orm import Session
-from . import models, schemas
-from .database import SessionLocal
-from .auth import get_current_user
+import uuid
 from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from . import models, schemas
+from .auth import get_current_user
+from .database import Base, SessionLocal, engine
 from .models import Stock
 from .schemas import StockCreate, StockRead, StockUpdate
-from .database import engine, Base
-import uuid
 
 Base.metadata.create_all(bind=engine)
 print("Tüm tablolar güncel modellerle oluşturuldu.")

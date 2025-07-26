@@ -3,18 +3,19 @@ SQLAlchemy veritabanı modelleri.
 ERP sistemi için kullanıcı, ürün, sipariş ve stok modellerini içerir.
 """
 
+import datetime
+
 from sqlalchemy import (
     Column,
+    DateTime,
+    Float,
+    ForeignKey,
     Integer,
     String,
-    ForeignKey,
-    Float,
-    DateTime,
-    func,
     UniqueConstraint,
+    func,
 )
-from sqlalchemy.orm import relationship, declarative_base
-import datetime
+from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
 
@@ -22,7 +23,7 @@ Base = declarative_base()
 class User(Base):
     """
     Kullanıcı modeli.
-    
+
     Attributes:
         id: Benzersiz kullanıcı kimliği
         name: Kullanıcı adı
@@ -33,6 +34,7 @@ class User(Base):
         created_at: Hesap oluşturma tarihi
         updated_at: Son güncelleme tarihi
     """
+
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
@@ -53,7 +55,7 @@ class User(Base):
 class Address(Base):
     """
     Adres modeli.
-    
+
     Attributes:
         id: Benzersiz adres kimliği
         user_id: Adresin ait olduğu kullanıcı
@@ -63,6 +65,7 @@ class Address(Base):
         postal_code: Posta kodu
         is_default: Varsayılan adres mi (1: evet, 0: hayır)
     """
+
     __tablename__ = "addresses"
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
@@ -77,13 +80,14 @@ class Address(Base):
 class Category(Base):
     """
     Kategori modeli.
-    
+
     Attributes:
         id: Benzersiz kategori kimliği
         name: Kategori adı
         parent_id: Üst kategori kimliği (hiyerarşik yapı için)
         description: Kategori açıklaması
     """
+
     __tablename__ = "categories"
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, nullable=False)
@@ -95,7 +99,7 @@ class Category(Base):
 class Product(Base):
     """
     Ürün modeli.
-    
+
     Attributes:
         id: Benzersiz ürün kimliği
         name: Ürün adı
@@ -107,6 +111,7 @@ class Product(Base):
         is_active: Ürün aktif mi (1: evet, 0: hayır)
         created_at: Ürün oluşturma tarihi
     """
+
     __tablename__ = "products"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False, index=True)
@@ -123,7 +128,7 @@ class Product(Base):
 class Order(Base):
     """
     Sipariş modeli.
-    
+
     Attributes:
         id: Benzersiz sipariş kimliği
         user_id: Siparişi veren kullanıcı
@@ -132,6 +137,7 @@ class Order(Base):
         created_at: Sipariş oluşturma tarihi
         shipping_address_id: Teslimat adresi
     """
+
     __tablename__ = "orders"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
@@ -149,7 +155,7 @@ class Order(Base):
 class OrderItem(Base):
     """
     Sipariş kalemi modeli.
-    
+
     Attributes:
         id: Benzersiz kalem kimliği
         order_id: Ait olduğu sipariş
@@ -158,6 +164,7 @@ class OrderItem(Base):
         unit_price: Birim fiyat
         total_price: Toplam fiyat (quantity * unit_price)
     """
+
     __tablename__ = "order_items"
     id = Column(Integer, primary_key=True)
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
@@ -172,7 +179,7 @@ class OrderItem(Base):
 class StockMovement(Base):
     """
     Stok hareketi modeli.
-    
+
     Attributes:
         id: Benzersiz hareket kimliği
         product_id: Ürün kimliği
@@ -181,6 +188,7 @@ class StockMovement(Base):
         dest_location: Hedef konum
         created_at: Hareket tarihi
     """
+
     __tablename__ = "stock_movements"
     id = Column(Integer, primary_key=True)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
@@ -195,7 +203,7 @@ class StockMovement(Base):
 class Stock(Base):
     """
     Stok modeli.
-    
+
     Attributes:
         id: Benzersiz stok kimliği
         product_name: Ürün adı (benzersiz)
@@ -203,6 +211,7 @@ class Stock(Base):
         location: Stok konumu
         created_at: Stok kaydı oluşturma tarihi
     """
+
     __tablename__ = "stocks"
     __table_args__ = (UniqueConstraint("product_name", name="uq_product_name"),)
     id = Column(Integer, primary_key=True, index=True)

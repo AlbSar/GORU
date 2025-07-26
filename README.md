@@ -1,4 +1,7 @@
-[![Build Status](https://github.com/AlbSar/GORU/actions/workflows/ci.yml/badge.svg)](https://github.com/AlbSar/GORU/actions)
+[![CI](https://github.com/AlbSar/GORU/actions/workflows/ci.yml/badge.svg)](https://github.com/AlbSar/GORU/actions)
+[![Coverage](https://codecov.io/gh/AlbSar/GORU/branch/main/graph/badge.svg)](https://codecov.io/gh/AlbSar/GORU)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)](https://github.com/AlbSar/GORU)
 
 # GORU ERP Backend
@@ -31,6 +34,36 @@ Bu proje, gerçek bir ekip çalışması ve yazılım geliştirme sürecinin tü
   ```sh
   docker build -t goru-backend-test:local -f backend/Dockerfile backend
   docker run --rm -e DATABASE_URL=postgresql://<USER>:<PASSWORD>@localhost:5432/<DB> goru-backend-test:local pytest --cov=app --cov-report=term-missing
+
+### Mock API Sistemi
+
+Geliştirme ve test süreçlerinde gerçek veritabanı bağımlılığını ortadan kaldırmak için mock API sistemi:
+
+```bash
+# Mock modu etkin
+export USE_MOCK=true
+
+# Mock endpoint'leri:
+# GET /mock/users - Mock kullanıcı listesi
+# GET /mock/orders - Mock sipariş listesi  
+# GET /mock/stocks - Mock stok listesi
+# Tüm CRUD operasyonları desteklenir
+```
+
+### Linting ve Code Quality
+
+```bash
+# Kod formatlaması
+black backend/app/ --line-length 88
+isort backend/app/ --profile black
+
+# Linting kontrolü  
+flake8 backend/app/
+ruff check backend/app/
+
+# Pre-commit hooks (otomatik olarak çalışır)
+pre-commit run --all-files
+```
   ```
 
 ## CI/CD ve Otomasyon

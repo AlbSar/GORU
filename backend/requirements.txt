@@ -12,3 +12,8 @@ black
 ruff
 pytest-cov
 bcrypt
+pydantic-settings
+faker
+isort
+pylint
+pre-commit
