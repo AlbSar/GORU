@@ -1,0 +1,57 @@
+1. Python Proje Yapısı Kurulumu
+1.1. Proje klasörlerinin oluşturulması (app/, tests/, schemas/, models/ vb.)
+
+1.2. Sanal ortam kurulumu (venv veya poetry)
+
+1.3. Gerekli kütüphanelerin kurulması (fastapi, sqlalchemy, pydantic, pytest)
+
+1.4. .gitignore ve proje dosya düzenlemelerinin yapılması
+
+2. Git & Versiyon Kontrol Yapılandırması
+2.1. Git deposunun başlatılması (git init, README.md, ilk commit)
+
+2.2. Branch stratejisinin belirlenmesi (main, dev, feature/x yapısı)
+
+3. FastAPI Uygulama Başlangıcı
+3.1. main.py içinde FastAPI app nesnesinin oluşturulması
+
+3.2. CORS middleware yapılandırması
+
+3.3. Swagger (/docs) ve Redoc (/redoc) endpoint testleri
+
+4. Veritabanı Bağlantısı (PostgreSQL)
+4.1. PostgreSQL kurulumu (lokal veya docker container)
+
+4.2. SQLAlchemy engine ve Base bağlantı yapılandırması
+
+4.3. .env dosyası ile ortam değişkenlerinin yönetimi
+
+5. Dockerfile ve docker-compose Kurulumu
+5.1. Dockerfile oluşturulması (FastAPI için uygun image, port, uvicorn komutu)
+
+5.2. docker-compose.yml dosyasının yazılması (backend + db servisleri)
+
+5.3. Docker servislerinin birlikte ayağa kaldırılması ve test edilmesi
+
+6. User CRUD Modülü
+6.1. User modeli (models.py) tanımlanması
+
+6.2. UserCreate, UserOut, UserInDB gibi pydantic şemalarının yazılması
+
+6.3. Kullanıcı endpointlerinin yazılması (POST, GET, PUT, DELETE)
+
+6.4. Validasyon kontrolleri ve response düzenlemeleri
+
+7. Test Altyapısının Kurulumu
+7.1. pytest kurulumu ve test ortamı hazırlanması
+
+7.2. İlk test dosyasının (test_users.py) oluşturulması
+
+7.3. Test veritabanı yapılandırması (test config)
+
+7.4. Coverage raporu entegrasyonu (isteğe bağlı)
+
+8. Dokümantasyon ve Açıklamalar
+8.1. README.md dosyasının yazılması (kurulum, çalıştırma, teknoloji yığını)
+
+8.2. Kod içinde açıklama ve yorum satırlarının eklenmesi (özellikle model ve endpoint'lerde)

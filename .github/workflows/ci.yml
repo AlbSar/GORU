@@ -9,6 +9,21 @@ on:
 jobs:
   build-test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: goru
+          POSTGRES_PASSWORD: goru
+          POSTGRES_DB: goru_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U goru"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Kodu checkout et
         uses: actions/checkout@v4
@@ -18,5 +33,7 @@ jobs:
           docker build -t goru-backend-test:ci -f backend/Dockerfile backend
 
       - name: Docker container içinde testleri çalıştır
+        env:
+          DATABASE_URL: postgresql://goru:goru@localhost:5432/goru_db
         run: |
-          docker run --rm -e DATABASE_URL=postgresql://goru:goru@host.docker.internal:5432/goru_db goru-backend-test:ci pytest --cov=app --cov-report=xml
+          docker run --rm -e DATABASE_URL=${DATABASE_URL} goru-backend-test:ci pytest --cov=app --cov-report=xml

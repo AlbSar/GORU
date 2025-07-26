@@ -5,166 +5,89 @@
 
 Bu proje, gerçek bir ekip çalışması ve yazılım geliştirme sürecinin tüm iniş çıkışlarını yansıtan, FastAPI tabanlı bir ERP backend uygulamasıdır. Projeyi geliştirirken hem teknik hem de pratik birçok zorlukla karşılaştık ve her adımda gerçek bir insan dokunuşu ve öğrenme süreci yaşandı.
 
-## Süreç ve Deneyimler
+## Hızlı Başlangıç
 
-<<<<<<< Updated upstream
+1. Repoyu klonlayın:
+   ```sh
+   git clone https://github.com/AlbSar/GORU.git
+   cd GORU
+   ```
+2. Localde PostgreSQL başlatın veya Docker Compose ile tüm ortamı ayağa kaldırın:
+   ```sh
+   docker-compose up --build
+   ```
+3. API dokümantasyonu için:
+   - [http://localhost:8000/docs](http://localhost:8000/docs)
 
-=======
-Başlangıçta temel hedefimiz, modüler ve sürdürülebilir bir ERP altyapısı kurmaktı. Klasör yapısından test otomasyonuna, Docker ve CI/CD entegrasyonuna kadar her adımda hem modern yazılım pratiklerini hem de kendi tecrübelerimizi birleştirdik. Özellikle Docker ve Github Actions ile CI süreçlerinde context ve yol hataları gibi gerçek dünyada sıkça karşılaşılan sorunlarla uğraştık. Her hatada, önce sebebini anlamaya, sonra da en temiz ve sürdürülebilir çözümü bulmaya çalıştık.
+## Testler
 
-Bu README, hem teknik bir rehber hem de sürecin bir özeti olarak hazırlandı. Buradaki adımlar, birebir yaşanmış deneyimlerin ve gerçek debug süreçlerinin sonucudur. Umarım bu dokümantasyon, projeyi devralacak veya benzer bir yolculuğa çıkacak herkes için yol gösterici olur.
->>>>>>> Stashed changes
-
----
-
-## 1. **Docker Image Build & Test (Local Build + Container İçinde Test)**
-
-### a) **Github Actions Adımı (ci.yml)**
-`.github/workflows/ci.yml` dosyanıza ekleyin:
-
-```yaml
-name: CI
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-jobs:
-  build-test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Kodu checkout et
-        uses: actions/checkout@v4
-
-      - name: Docker image build (local)
-        run: |
-          docker build -t goru-backend-test:ci -f backend/Dockerfile backend
-
-      - name: Docker container içinde testleri çalıştır
-        run: |
-          docker run --rm goru-backend-test:ci pytest --cov=app --cov-report=xml
-```
-**Açıklama:**  
-- Her push/pull request’te image local olarak build edilir.
-- Testler, image içinde (container’da) çalıştırılır.
-- Otomatik deployment veya push adımı yoktur.
-- Build context ve Dockerfile yolları, yaşanan hatalardan sonra özellikle dikkatlice ayarlandı.
-
----
-
-## 2. **Kapsamlı Otomasyon için Hazırlık (Sadece CI)**
-
-### a) **README.md’ye Badge Ekle**
-README.md dosyanın en üstüne ekle:
-
-```markdown
-[![Build Status](https://github.com/<kullanici>/<repo>/actions/workflows/ci.yml/badge.svg)](https://github.com/<kullanici>/<repo}/actions)
-[![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)](https://github.com/<kullanici>/<repo})
-```
-> **Not:** `<kullanici>` ve `<repo>` kısımlarını kendi Github kullanıcı adı ve repo adınızla değiştirin.
-
----
-
-## 3. **İleriye Dönük Otomasyon (Otomatik Deploy’a Hazırlık)**
-
-### a) **Gelecekte Otomatik Deploy Eklemek için Template**
-- SSH ile sunucuya bağlanıp deploy etmek için aşağıdaki job’u CI pipeline’ınıza kolayca ekleyebilirsiniz:
-
-```yaml
-  deploy:
-    needs: build-test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Sunucuya SSH ile bağlan ve deploy et
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            docker pull <dockerhub_kullanici>/goru-backend:latest
-            cd /path/to/your/app
-            docker-compose up -d
-```
-> **Not:** Bu adımı şimdilik eklemeyin, sadece ileride kolayca entegre edebilirsiniz.
-
----
-
-## 4. **Debug ve Geliştirme Kolaylığı**
-
-### a) **Localde Testleri Tekrar Koşturmak için Komutlar**
-- Sanal ortamda:
+- Localde testleri çalıştırmak için:
   ```sh
   cd backend
   pip install -r requirements.txt
   pytest --cov=app --cov-report=term-missing
   ```
-- Docker ile:
+- Docker ile test:
   ```sh
   docker build -t goru-backend-test:local -f backend/Dockerfile backend
-  docker run --rm goru-backend-test:local pytest --cov=app --cov-report=term-missing
+  docker run --rm -e DATABASE_URL=postgresql://<USER>:<PASSWORD>@localhost:5432/<DB> goru-backend-test:local pytest --cov=app --cov-report=term-missing
   ```
 
-### b) **Docker Compose ile Local Test Ortamı**
-`docker-compose.yml` örneği (proje köküne):
+## CI/CD ve Otomasyon
 
+Github Actions pipeline'ında testler için izole bir PostgreSQL servisi otomatik olarak başlatılır. Test container'ı bu veritabanına `localhost` üzerinden bağlanır. Localde ise kendi veritabanı ayarınızla çalışabilirsiniz.
+
+Örnek `.github/workflows/ci.yml`:
 ```yaml
-version: '3.8'
-services:
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: goru
-      POSTGRES_PASSWORD: goru
-      POSTGRES_DB: goru_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
-  backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
-    environment:
-      DATABASE_URL: postgresql://goru:goru@db:5432/goru_db
-    depends_on:
-      - db
-    ports:
-      - "8000:8000"
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
-
-volumes:
-  pgdata:
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: <USER>
+          POSTGRES_PASSWORD: <PASSWORD>
+          POSTGRES_DB: <DB>
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U <USER>"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - name: Kodu checkout et
+        uses: actions/checkout@v4
+      - name: Docker image build (local)
+        run: |
+          docker build -t goru-backend-test:ci -f backend/Dockerfile backend
+      - name: Docker container içinde testleri çalıştır
+        env:
+          DATABASE_URL: postgresql://<USER>:<PASSWORD>@localhost:5432/<DB>
+        run: |
+          docker run --rm -e DATABASE_URL=${DATABASE_URL} goru-backend-test:ci pytest --cov=app --cov-report=xml
 ```
-**Kullanım:**
-```sh
-docker-compose up --build
-```
-- Testleri container içinde çalıştırmak için:
-  ```sh
-  docker-compose run backend pytest --cov=app --cov-report=term-missing
+
+## API Örnekleri
+
+- Kullanıcı oluşturma:
+  ```http
+  POST /users/
+  Content-Type: application/json
+  Authorization: Bearer <TOKEN>
+  {
+    "name": "Test User",
+    "email": "test@example.com",
+    "password": "test123"
+  }
   ```
+- Hata kodları:
+  - 401: Yetkisiz erişim
+  - 422: Eksik veya hatalı veri
+  - 404: Kaynak bulunamadı
 
----
-
-## 5. **Ekstra: Gelecekte Otomatik Deploy için Not**
-- SSH ile deploy job’unu eklemek için sadece secrets ve sunucu ayarlarını eklemeniz yeterli.
-- Docker image push ve sunucuya çekme adımlarını pipeline’a ekleyebilirsiniz (örnek yukarıda).
-
----
-
-### **Özet**
-- **ci.yml**: Sadece build ve test (deployment yok).
-- **README.md**: Build ve coverage badge.
-- **docker-compose.yml**: Local geliştirme ve test ortamı.
-- **Gelecekte**: SSH deploy job’u kolayca eklenebilir.
-
-<<<<<<< Updated upstream
-=======
----
-
-Bu dokümantasyon, gerçek bir geliştirme ve öğrenme sürecinin ürünü olarak, hem teknik hem de insani bir bakış açısıyla hazırlandı. Herhangi bir adımda hata alırsanız, hata mesajını paylaşın; birlikte çözüm bulabiliriz!
->>>>>>> Stashed changes
+## Notlar
+- Kod kalitesi ve test kapsamı otomatik olarak CI pipeline'ında kontrol edilir.
+- Tüm önemli geliştirme ve otomasyon adımları README ve calisma_notu.md dosyalarında açıklanmıştır.
+- Herhangi bir adımda hata alırsanız, hata mesajını paylaşın; birlikte çözüm bulabiliriz!

@@ -1,6 +1,7 @@
 """
 API endpointleri.
-Kullanıcı ve Sipariş için CRUD işlemlerini sağlar.
+ERP sistemi için kullanıcı, sipariş ve stok yönetimi CRUD işlemlerini sağlar.
+RESTful API standartlarına uygun endpoint'ler içerir.
 """
 
 from fastapi import APIRouter, HTTPException, Depends, status

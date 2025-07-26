@@ -1,6 +1,7 @@
 """
 Pydantic şemaları.
-Kullanıcı ve Sipariş modelleri için Create ve Read şemalarını içerir.
+ERP sistemi için veri doğrulama ve serileştirme şemalarını içerir.
+Kullanıcı, ürün, sipariş ve stok modelleri için Create, Read ve Update şemaları.
 """
 
 from pydantic import BaseModel, EmailStr, ConfigDict, field_validator
@@ -11,6 +12,16 @@ from datetime import datetime
 
 
 class AddressBase(BaseModel):
+    """
+    Adres temel şeması.
+    
+    Attributes:
+        address_line: Adres satırı
+        city: Şehir
+        country: Ülke
+        postal_code: Posta kodu
+        is_default: Varsayılan adres mi
+    """
     address_line: str
     city: str
     country: str
@@ -28,6 +39,15 @@ class AddressRead(AddressBase):
 
 
 class UserBase(BaseModel):
+    """
+    Kullanıcı temel şeması.
+    
+    Attributes:
+        name: Kullanıcı adı
+        email: E-posta adresi
+        role: Kullanıcı rolü (customer, admin, vb.)
+        is_active: Kullanıcının aktif olup olmadığı
+    """
     name: str
     email: EmailStr
     role: str = "customer"
@@ -35,10 +55,26 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
+    """
+    Kullanıcı oluşturma şeması.
+    
+    Attributes:
+        password: Şifre (hash'lenecek)
+    """
     password: str
 
 
 class UserRead(UserBase):
+    """
+    Kullanıcı okuma şeması.
+    
+    Attributes:
+        id: Kullanıcı kimliği
+        created_at: Hesap oluşturma tarihi
+        updated_at: Son güncelleme tarihi
+        addresses: Kullanıcının adresleri
+        orders: Kullanıcının siparişleri
+    """
     id: int
     created_at: datetime
     updated_at: datetime
@@ -48,6 +84,17 @@ class UserRead(UserBase):
 
 
 class UserUpdate(BaseModel):
+    """
+    Kullanıcı güncelleme şeması.
+    Tüm alanlar opsiyonel, sadece değiştirilecek alanlar gönderilir.
+    
+    Attributes:
+        name: Kullanıcı adı (opsiyonel)
+        email: E-posta adresi (opsiyonel)
+        role: Kullanıcı rolü (opsiyonel)
+        is_active: Aktiflik durumu (opsiyonel)
+        password: Şifre (opsiyonel, hash'lenecek)
+    """
     name: Optional[str] = None
     email: Optional[EmailStr] = None
     role: Optional[str] = None
