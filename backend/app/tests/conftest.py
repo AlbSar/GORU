@@ -20,9 +20,7 @@ engine = create_engine(
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
 )
-TestingSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine
-)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def override_get_db():
@@ -115,9 +113,7 @@ def create_test_user(client, auth_headers):
         "is_active": True,
         "password": "test123",
     }
-    response = client.post(
-        "/api/v1/users/", json=user_data, headers=auth_headers
-    )
+    response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
     if response.status_code == 201:
         return response.json()["id"]
     return None
@@ -132,9 +128,7 @@ def create_test_stock(client, auth_headers):
         "unit_price": 15.99,
         "supplier": "Fixture Supplier",
     }
-    response = client.post(
-        "/api/v1/stocks/", json=stock_data, headers=auth_headers
-    )
+    response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
     if response.status_code == 201:
         return response.json()["id"]
     return None
@@ -146,10 +140,6 @@ def pytest_configure(config):
         "markers",
         "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     )
-    config.addinivalue_line(
-        "markers", "integration: marks tests as integration tests"
-    )
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")
     config.addinivalue_line("markers", "unit: marks tests as unit tests")
-    config.addinivalue_line(
-        "markers", "auth: marks tests that require authentication"
-    )
+    config.addinivalue_line("markers", "auth: marks tests that require authentication")

@@ -199,9 +199,7 @@ class StockBase(BaseModel):
     @classmethod
     def name_not_empty(cls, v):
         if not v or not v.strip():
-            raise ValueError(
-                "Ürün adı boş olamaz / Product name cannot be empty"
-            )
+            raise ValueError("Ürün adı boş olamaz / Product name cannot be empty")
         return v
 
 
@@ -248,9 +246,7 @@ class StockUpdate(BaseModel):
     @classmethod
     def name_not_empty(cls, v):
         if v is not None and not v.strip():
-            raise ValueError(
-                "Ürün adı boş olamaz / Product name cannot be empty"
-            )
+            raise ValueError("Ürün adı boş olamaz / Product name cannot be empty")
         return v
 
 

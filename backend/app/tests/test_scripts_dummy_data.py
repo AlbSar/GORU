@@ -28,14 +28,10 @@ class TestGenerateDummyData:
         database_url = f"sqlite:///{temp_db_file.name}"
 
         # Engine ve session oluştur
-        engine = create_engine(
-            database_url, connect_args={"check_same_thread": False}
-        )
+        engine = create_engine(database_url, connect_args={"check_same_thread": False})
         Base.metadata.create_all(bind=engine)
 
-        SessionLocal = sessionmaker(
-            autocommit=False, autoflush=False, bind=engine
-        )
+        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
         yield SessionLocal, database_url
 
@@ -236,9 +232,7 @@ class TestCreateTablesScript:
         try:
             from ..scripts import create_tables
 
-            assert (
-                hasattr(create_tables, "main") or len(dir(create_tables)) > 0
-            )
+            assert hasattr(create_tables, "main") or len(dir(create_tables)) > 0
         except ImportError as e:
             pytest.fail(f"Create tables script import failed: {e}")
 

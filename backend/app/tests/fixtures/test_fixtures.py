@@ -21,9 +21,7 @@ TEST_DATABASE_URL = "sqlite:///./test.db"
 test_engine = create_engine(
     TEST_DATABASE_URL, connect_args={"check_same_thread": False}
 )
-TestingSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=test_engine
-)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
 
 @pytest.fixture(scope="session")

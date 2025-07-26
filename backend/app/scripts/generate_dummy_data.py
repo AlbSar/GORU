@@ -12,12 +12,11 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 import random
 
+from app.database import engine
+from app.models import Order, Stock, User
+from app.schemas import OrderCreate, StockCreate, UserCreate
 from faker import Faker
 from sqlalchemy.orm import Session
-
-from app.models import Order, Stock, User
-from app.database import engine
-from app.schemas import OrderCreate, StockCreate, UserCreate
 
 fake = Faker("tr_TR")
 
@@ -64,9 +63,7 @@ def create_dummy_stocks(db: Session, count: int = 100):
     stocks = []
     for i in range(count):
         category = random.choice(product_categories)
-        product_name = (
-            f"{fake.company()} {category} {fake.color_name()} {fake.word()}"
-        )
+        product_name = f"{fake.company()} {category} {fake.color_name()} {fake.word()}"
 
         stock = Stock(
             product_name=product_name,
@@ -82,9 +79,7 @@ def create_dummy_stocks(db: Session, count: int = 100):
     return stocks
 
 
-def create_dummy_orders(
-    db: Session, users: list, stocks: list, count: int = 200
-):
+def create_dummy_orders(db: Session, users: list, stocks: list, count: int = 200):
     """Sahte sipariş verileri oluşturur."""
     print(f"Creating {count} dummy orders...")
 
@@ -96,9 +91,7 @@ def create_dummy_orders(
         order = Order(
             user_id=user.id,
             total_amount=0,  # Hesaplanacak
-            status=random.choice(
-                ["pending", "completed", "cancelled", "processing"]
-            ),
+            status=random.choice(["pending", "completed", "cancelled", "processing"]),
         )
 
         # Order items oluştur

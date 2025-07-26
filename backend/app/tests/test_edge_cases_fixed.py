@@ -196,9 +196,7 @@ class TestIntegrationWithAuth:
         user_id = create_response.json()["id"]
 
         # READ
-        read_response = client.get(
-            f"/api/v1/users/{user_id}", headers=auth_headers
-        )
+        read_response = client.get(f"/api/v1/users/{user_id}", headers=auth_headers)
         assert read_response.status_code == 200
         assert read_response.json()["name"] == user_data["name"]
 
@@ -238,13 +236,9 @@ class TestIntegrationWithAuth:
         stock_id = create_response.json()["id"]
 
         # READ
-        read_response = client.get(
-            f"/api/v1/stocks/{stock_id}", headers=auth_headers
-        )
+        read_response = client.get(f"/api/v1/stocks/{stock_id}", headers=auth_headers)
         assert read_response.status_code == 200
-        assert (
-            read_response.json()["product_name"] == stock_data["product_name"]
-        )
+        assert read_response.json()["product_name"] == stock_data["product_name"]
 
         # UPDATE
         update_data = {"quantity": 150}

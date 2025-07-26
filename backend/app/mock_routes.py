@@ -38,13 +38,11 @@ mock_router = APIRouter(
 )
 def get_mock_users(
     skip: int = Query(0, ge=0, description="Atlanacak kayıt sayısı"),
-    limit: int = Query(
-        100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"
-    ),
+    limit: int = Query(100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"),
 ):
     """Mock kullanıcıları listele."""
     users = MockUserService.get_all()
-    return users[skip:skip + limit]
+    return users[skip : skip + limit]
 
 
 @mock_router.get(
@@ -53,9 +51,7 @@ def get_mock_users(
     summary="ID'ye göre mock kullanıcı getir",
     description="Belirtilen ID'ye sahip mock kullanıcıyı döner.",
 )
-async def get_mock_user(
-    user_id: int = Path(..., gt=0, description="Kullanıcı ID'si")
-):
+async def get_mock_user(user_id: int = Path(..., gt=0, description="Kullanıcı ID'si")):
     """ID'ye göre mock kullanıcı döner."""
     user = MockUserService.get_by_id(user_id)
     if not user:
@@ -129,13 +125,11 @@ async def delete_mock_user(
 )
 def get_mock_orders(
     skip: int = Query(0, ge=0, description="Atlanacak kayıt sayısı"),
-    limit: int = Query(
-        100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"
-    ),
+    limit: int = Query(100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"),
 ):
     """Mock siparişleri listele."""
     orders = MockOrderService.get_all()
-    return orders[skip:skip + limit]
+    return orders[skip : skip + limit]
 
 
 @mock_router.get(
@@ -144,9 +138,7 @@ def get_mock_orders(
     summary="ID'ye göre mock sipariş getir",
     description="Belirtilen ID'ye sahip mock siparişi döner.",
 )
-async def get_mock_order(
-    order_id: int = Path(..., gt=0, description="Sipariş ID'si")
-):
+async def get_mock_order(order_id: int = Path(..., gt=0, description="Sipariş ID'si")):
     """ID'ye göre mock sipariş döner."""
     order = MockOrderService.get_by_id(order_id)
     if not order:
@@ -220,13 +212,11 @@ async def delete_mock_order(
 )
 def get_mock_stocks(
     skip: int = Query(0, ge=0, description="Atlanacak kayıt sayısı"),
-    limit: int = Query(
-        100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"
-    ),
+    limit: int = Query(100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"),
 ):
     """Mock stokları listele."""
     stocks = MockStockService.get_all()
-    return stocks[skip:skip + limit]
+    return stocks[skip : skip + limit]
 
 
 @mock_router.get(
@@ -235,9 +225,7 @@ def get_mock_stocks(
     summary="ID'ye göre mock stok getir",
     description="Belirtilen ID'ye sahip mock stoku döner.",
 )
-async def get_mock_stock(
-    stock_id: int = Path(..., gt=0, description="Stok ID'si")
-):
+async def get_mock_stock(stock_id: int = Path(..., gt=0, description="Stok ID'si")):
     """ID'ye göre mock stok döner."""
     stock = MockStockService.get_by_id(stock_id)
     if not stock:
@@ -286,9 +274,7 @@ async def update_mock_stock(
     summary="Mock stok sil",
     description="Belirtilen ID'ye sahip mock stoku siler.",
 )
-async def delete_mock_stock(
-    stock_id: int = Path(..., gt=0, description="Stok ID'si")
-):
+async def delete_mock_stock(stock_id: int = Path(..., gt=0, description="Stok ID'si")):
     """Mock stok siler."""
     success = MockStockService.delete(stock_id)
     if not success:

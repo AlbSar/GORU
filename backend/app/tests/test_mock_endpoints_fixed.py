@@ -157,9 +157,7 @@ class TestMockStocks:
 
         # Güncelle
         update_data = {"quantity": 200}
-        response = mock_client.put(
-            f"/mock/stocks/{stock_id}", json=update_data
-        )
+        response = mock_client.put(f"/mock/stocks/{stock_id}", json=update_data)
         assert response.status_code == 200
         updated_stock = response.json()
         assert updated_stock["quantity"] == 200
@@ -227,9 +225,7 @@ class TestMockOrders:
 
         # Güncelle
         update_data = {"status": "completed"}
-        response = mock_client.put(
-            f"/mock/orders/{order_id}", json=update_data
-        )
+        response = mock_client.put(f"/mock/orders/{order_id}", json=update_data)
         assert response.status_code == 200
         updated_order = response.json()
         assert updated_order["status"] == "completed"

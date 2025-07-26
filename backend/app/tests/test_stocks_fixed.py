@@ -3,6 +3,7 @@ Stok endpoint'leri için test modülü.
 """
 
 import uuid
+
 from fastapi.testclient import TestClient
 
 from ..main import app
@@ -21,9 +22,7 @@ class TestStocksWithAuth:
             "unit_price": 25.99,
             "supplier": "Test Supplier",
         }
-        response = client.post(
-            "/api/v1/stocks/", json=stock_data, headers=auth_headers
-        )
+        response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
         assert response.status_code == 201
         data = response.json()
         assert data["product_name"] == stock_data["product_name"]
@@ -82,9 +81,7 @@ class TestStocksWithAuth:
         assert delete_response.status_code == 204
 
         # Silindiğini kontrol et
-        get_response = client.get(
-            f"/api/v1/stocks/{stock_id}", headers=auth_headers
-        )
+        get_response = client.get(f"/api/v1/stocks/{stock_id}", headers=auth_headers)
         assert get_response.status_code == 404
 
 
@@ -99,9 +96,7 @@ class TestStocksValidation:
             "unit_price": 25.99,
             "supplier": "Test Supplier",
         }
-        response = client.post(
-            "/api/v1/stocks/", json=stock_data, headers=auth_headers
-        )
+        response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
         assert response.status_code == 422
 
     def test_create_stock_empty_product_name(self, client, auth_headers):
@@ -112,9 +107,7 @@ class TestStocksValidation:
             "unit_price": 25.99,
             "supplier": "Test Supplier",
         }
-        response = client.post(
-            "/api/v1/stocks/", json=stock_data, headers=auth_headers
-        )
+        response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
         assert response.status_code == 422
 
     def test_create_stock_missing_fields(self, client, auth_headers):
@@ -123,9 +116,7 @@ class TestStocksValidation:
             "product_name": "Incomplete Stock"
             # quantity, unit_price, supplier eksik
         }
-        response = client.post(
-            "/api/v1/stocks/", json=stock_data, headers=auth_headers
-        )
+        response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
         assert response.status_code == 422
 
     def test_get_nonexistent_stock(self, client, auth_headers):

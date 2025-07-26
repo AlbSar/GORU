@@ -25,9 +25,7 @@ class TestUserRoutesCRUD:
             "is_active": True,
             "password": "secure123",
         }
-        response = client.post(
-            "/api/v1/users/", json=user_data, headers=auth_headers
-        )
+        response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
         assert response.status_code == 201
         data = response.json()
         assert "password_hash" in data
@@ -46,16 +44,12 @@ class TestUserRoutesCRUD:
         }
 
         # İlk kullanıcı
-        response1 = client.post(
-            "/api/v1/users/", json=user_data, headers=auth_headers
-        )
+        response1 = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
         assert response1.status_code == 201
 
         # Duplicate attempt
         user_data["name"] = "Second User"
-        response2 = client.post(
-            "/api/v1/users/", json=user_data, headers=auth_headers
-        )
+        response2 = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
         assert response2.status_code in [400, 409]  # Constraint error
 
     def test_create_user_invalid_role(self, client, auth_headers):
@@ -67,15 +61,11 @@ class TestUserRoutesCRUD:
             "is_active": True,
             "password": "test123",
         }
-        response = client.post(
-            "/api/v1/users/", json=user_data, headers=auth_headers
-        )
+        response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
         # Role validation varsa 422, yoksa 201 dönebilir
         assert response.status_code in [201, 422]
 
-    def test_get_user_by_id_success(
-        self, client, auth_headers, create_test_user
-    ):
+    def test_get_user_by_id_success(self, client, auth_headers, create_test_user):
         """Başarılı kullanıcı getirme testi."""
         if create_test_user:
             response = client.get(
@@ -84,9 +74,7 @@ class TestUserRoutesCRUD:
             assert response.status_code == 200
             data = response.json()
             assert data["id"] == create_test_user
-            assert (
-                "password_hash" not in data
-            )  # Password hash expose edilmemeli
+            assert "password_hash" not in data  # Password hash expose edilmemeli
 
     def test_get_user_by_id_not_found(self, client, auth_headers):
         """Olmayan kullanıcı getirme 404 testi."""
@@ -133,15 +121,11 @@ class TestUserRoutesCRUD:
         user_id = create_response.json()["id"]
 
         # Sil
-        response = client.delete(
-            f"/api/v1/users/{user_id}", headers=auth_headers
-        )
+        response = client.delete(f"/api/v1/users/{user_id}", headers=auth_headers)
         assert response.status_code == 204
 
         # Silindi kontrolü
-        get_response = client.get(
-            f"/api/v1/users/{user_id}", headers=auth_headers
-        )
+        get_response = client.get(f"/api/v1/users/{user_id}", headers=auth_headers)
         assert get_response.status_code == 404
 
     def test_delete_user_not_found(self, client, auth_headers):
@@ -161,9 +145,7 @@ class TestStockRoutesCRUD:
             "unit_price": 45.99,
             "supplier": "Routes Test Supplier",
         }
-        response = client.post(
-            "/api/v1/stocks/", json=stock_data, headers=auth_headers
-        )
+        response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
         assert response.status_code == 201
         data = response.json()
         assert data["product_name"] == stock_data["product_name"]
@@ -177,9 +159,7 @@ class TestStockRoutesCRUD:
             "unit_price": 25.99,
             "supplier": "Test Supplier",
         }
-        response = client.post(
-            "/api/v1/stocks/", json=stock_data, headers=auth_headers
-        )
+        response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
         # Zero quantity allowed veya validation error
         assert response.status_code in [201, 422]
 
@@ -196,9 +176,7 @@ class TestStockRoutesCRUD:
         data = response.json()
         assert "detail" in data
 
-    def test_update_stock_quantity(
-        self, client, auth_headers, create_test_stock
-    ):
+    def test_update_stock_quantity(self, client, auth_headers, create_test_stock):
         """Stok miktarı güncelleme testi."""
         if create_test_stock:
             update_data = {"quantity": 250}
@@ -211,9 +189,7 @@ class TestStockRoutesCRUD:
             data = response.json()
             assert data["quantity"] == 250
 
-    def test_update_stock_partial_fields(
-        self, client, auth_headers, create_test_stock
-    ):
+    def test_update_stock_partial_fields(self, client, auth_headers, create_test_stock):
         """Partial field güncelleme testi."""
         if create_test_stock:
             update_data = {"supplier": "Updated Supplier", "unit_price": 99.99}
@@ -246,9 +222,7 @@ class TestOrderRoutesCRUD:
                 }
             ],
         }
-        response = client.post(
-            "/api/v1/orders/", json=order_data, headers=auth_headers
-        )
+        response = client.post("/api/v1/orders/", json=order_data, headers=auth_headers)
         assert response.status_code == 201
         data = response.json()
         assert data["total_amount"] == order_data["total_amount"]
@@ -262,9 +236,7 @@ class TestOrderRoutesCRUD:
             "status": "pending",
             "order_items": [],
         }
-        response = client.post(
-            "/api/v1/orders/", json=order_data, headers=auth_headers
-        )
+        response = client.post("/api/v1/orders/", json=order_data, headers=auth_headers)
         # Empty items allowed veya validation error
         assert response.status_code in [201, 422]
 
@@ -276,9 +248,7 @@ class TestOrderRoutesCRUD:
             "status": "pending",
             "order_items": [],
         }
-        response = client.post(
-            "/api/v1/orders/", json=order_data, headers=auth_headers
-        )
+        response = client.post("/api/v1/orders/", json=order_data, headers=auth_headers)
         # Foreign key constraint veya validation
         assert response.status_code in [201, 400, 422]
 
@@ -350,9 +320,7 @@ class TestErrorHandling:
             "is_active": True,
             "password": "test123",
         }
-        response = client.post(
-            "/api/v1/users/", json=user_data, headers=auth_headers
-        )
+        response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
         # Database constraint veya application limit
         assert response.status_code in [201, 400, 413, 422]
 
@@ -418,9 +386,7 @@ class TestDatabaseConstraints:
     """Database constraint testleri."""
 
     @patch("app.routes.SessionLocal")
-    def test_database_connection_error(
-        self, mock_session, client, auth_headers
-    ):
+    def test_database_connection_error(self, mock_session, client, auth_headers):
         """Database connection error testi."""
         mock_session.side_effect = Exception("Database connection failed")
 
@@ -443,9 +409,7 @@ class TestDatabaseConstraints:
         import concurrent.futures
 
         def create_user():
-            return client.post(
-                "/api/v1/users/", json=user_data, headers=auth_headers
-            )
+            return client.post("/api/v1/users/", json=user_data, headers=auth_headers)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
             futures = [executor.submit(create_user) for _ in range(3)]

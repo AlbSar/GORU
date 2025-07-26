@@ -7,7 +7,6 @@ import uuid
 
 import pytest
 
-
 # Test client conftest.py'den alınacak
 
 

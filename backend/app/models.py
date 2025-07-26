@@ -49,9 +49,7 @@ class User(Base):
         onupdate=func.now(),
         nullable=False,
     )
-    orders = relationship(
-        "Order", back_populates="user", cascade="all, delete-orphan"
-    )
+    orders = relationship("Order", back_populates="user", cascade="all, delete-orphan")
     addresses = relationship(
         "Address", back_populates="user", cascade="all, delete-orphan"
     )
@@ -218,9 +216,7 @@ class Stock(Base):
     """
 
     __tablename__ = "stocks"
-    __table_args__ = (
-        UniqueConstraint("product_name", name="uq_product_name"),
-    )
+    __table_args__ = (UniqueConstraint("product_name", name="uq_product_name"),)
     id = Column(Integer, primary_key=True, index=True)
     product_name = Column(String, unique=True, nullable=False, index=True)
     quantity = Column(Integer, nullable=False, default=0)

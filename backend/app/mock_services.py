@@ -96,9 +96,7 @@ class MockUserService:
 
     @staticmethod
     def get_by_id(user_id: int) -> Optional[Dict[str, Any]]:
-        return next(
-            (user for user in mock_data.users if user["id"] == user_id), None
-        )
+        return next((user for user in mock_data.users if user["id"] == user_id), None)
 
     @staticmethod
     def create(user_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -114,9 +112,7 @@ class MockUserService:
         return new_user
 
     @staticmethod
-    def update(
-        user_id: int, user_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    def update(user_id: int, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         user = MockUserService.get_by_id(user_id)
         if user:
             user.update(user_data)
@@ -160,9 +156,7 @@ class MockOrderService:
         return new_order
 
     @staticmethod
-    def update(
-        order_id: int, order_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    def update(order_id: int, order_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         order = MockOrderService.get_by_id(order_id)
         if order:
             order.update(order_data)
@@ -206,9 +200,7 @@ class MockStockService:
         return new_stock
 
     @staticmethod
-    def update(
-        stock_id: int, stock_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    def update(stock_id: int, stock_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         stock = MockStockService.get_by_id(stock_id)
         if stock:
             stock.update(stock_data)

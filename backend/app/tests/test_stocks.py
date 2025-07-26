@@ -31,9 +31,7 @@ def test_create_stock():
 
 def test_create_stock_duplicate_product():
     product = unique_product()
-    print(
-        f"[TEST] test_create_stock_duplicate_product: product_name={product}"
-    )
+    print(f"[TEST] test_create_stock_duplicate_product: product_name={product}")
     client.post(
         "/api/v1/stocks/",
         json={"product_name": product, "quantity": 5},
@@ -46,16 +44,12 @@ def test_create_stock_duplicate_product():
     )
     print(f"[DEBUG] Response: {response.status_code}, {response.text}")
     assert response.status_code == 400
-    assert (
-        "already exists" in response.text or "zaten kayıtlı" in response.text
-    )
+    assert "already exists" in response.text or "zaten kayıtlı" in response.text
 
 
 def test_create_stock_negative_quantity():
     product = unique_product()
-    print(
-        f"[TEST] test_create_stock_negative_quantity: product_name={product}"
-    )
+    print(f"[TEST] test_create_stock_negative_quantity: product_name={product}")
     response = client.post(
         "/api/v1/stocks/",
         json={"product_name": product, "quantity": -1},
