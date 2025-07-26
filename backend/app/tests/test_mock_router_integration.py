@@ -20,17 +20,18 @@ from fastapi.testclient import TestClient
 def create_test_app(use_mock: bool = False):
     """Test için dinamik app oluştur."""
     # Environment variable'ı ayarla
-    os.environ['USE_MOCK'] = str(use_mock).lower()
-    
+    os.environ["USE_MOCK"] = str(use_mock).lower()
+
     # Settings'i yeniden yükle
     from ..core.settings import Settings
+
     settings = Settings()
-    
+
     # App'i yeniden oluştur
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
     from ..routes import router
-    
+
     app = FastAPI(
         title=settings.PROJECT_NAME,
         description=f"""
@@ -66,6 +67,7 @@ def create_test_app(use_mock: bool = False):
     if settings.USE_MOCK:
         try:
             from ..mock_routes import mock_router
+
             app.include_router(mock_router)
         except ImportError as e:
             print(f"❌ Mock router import hatası: {e}")
@@ -76,7 +78,7 @@ def create_test_app(use_mock: bool = False):
     def read_root():
         """
         API root endpoint.
-        
+
         Returns:
             dict: API durumu ve konfigürasyon bilgileri
         """
@@ -94,16 +96,16 @@ def create_test_app(use_mock: bool = False):
     def health_check():
         """
         Health check endpoint.
-        
+
         Returns:
             dict: Sistem sağlık durumu
         """
         return {
             "status": "healthy",
             "mock_enabled": settings.USE_MOCK,
-            "timestamp": "2024-01-01T00:00:00Z"  # Gerçek uygulamada datetime.now() kullanılır
+            "timestamp": "2024-01-01T00:00:00Z",  # Gerçek uygulamada datetime.now() kullanılır
         }
-    
+
     return app
 
 
@@ -132,7 +134,7 @@ class TestMockRouterActivation:
         response = mock_enabled_client.get("/")
         assert response.status_code == 200
         data = response.json()
-        
+
         # Mock mode bilgileri kontrol et
         assert "mock_mode" in data
         assert data["mock_mode"] == True
@@ -144,7 +146,7 @@ class TestMockRouterActivation:
         # Mock endpoint erişilemez olmalı
         response = mock_disabled_client.get("/mock/users")
         assert response.status_code == 404
-        
+
         # Root endpoint'te mock mode false olmalı
         response = mock_disabled_client.get("/")
         data = response.json()
@@ -201,13 +203,13 @@ class TestMockEndpointsCRUD:
             "email": f"integration-{uuid.uuid4()}@mock.com",
             "role": "user",
             "is_active": True,
-            "password": "mock123"
+            "password": "mock123",
         }
         create_response = mock_enabled_client.post("/mock/users/", json=user_data)
         assert create_response.status_code == 201
         created_user = create_response.json()
         user_id = created_user["id"]
-        
+
         # READ
         read_response = mock_enabled_client.get(f"/mock/users/{user_id}")
         assert read_response.status_code == 200
@@ -222,16 +224,18 @@ class TestMockEndpointsCRUD:
             "product_name": f"Mock Product {uuid.uuid4()}",
             "quantity": 100,
             "unit_price": 29.99,
-            "supplier": "Mock Supplier"
+            "supplier": "Mock Supplier",
         }
         create_response = mock_enabled_client.post("/mock/stocks/", json=stock_data)
         assert create_response.status_code == 201
         created_stock = create_response.json()
         stock_id = created_stock["id"]
-        
+
         # UPDATE
         update_data = {"quantity": 200, "unit_price": 39.99}
-        update_response = mock_enabled_client.put(f"/mock/stocks/{stock_id}", json=update_data)
+        update_response = mock_enabled_client.put(
+            f"/mock/stocks/{stock_id}", json=update_data
+        )
         assert update_response.status_code == 200
         updated_stock = update_response.json()
         assert updated_stock["quantity"] == 200
@@ -249,26 +253,28 @@ class TestMockEndpointsCRUD:
                     "product_id": 1,
                     "quantity": 1,
                     "unit_price": 99.99,
-                    "total_price": 99.99
+                    "total_price": 99.99,
                 }
-            ]
+            ],
         }
         create_response = mock_enabled_client.post("/mock/orders/", json=order_data)
         assert create_response.status_code == 201
         created_order = create_response.json()
         order_id = created_order["id"]
-        
+
         # UPDATE STATUS
         update_data = {"status": "shipped"}
-        update_response = mock_enabled_client.put(f"/mock/orders/{order_id}", json=update_data)
+        update_response = mock_enabled_client.put(
+            f"/mock/orders/{order_id}", json=update_data
+        )
         assert update_response.status_code == 200
         updated_order = update_response.json()
         assert updated_order["status"] == "shipped"
-        
+
         # DELETE
         delete_response = mock_enabled_client.delete(f"/mock/orders/{order_id}")
         assert delete_response.status_code == 204
-        
+
         # VERIFY DELETION
         get_response = mock_enabled_client.get(f"/mock/orders/{order_id}")
         assert get_response.status_code == 404
@@ -279,7 +285,7 @@ class TestMockEndpointsCRUD:
         invalid_user = {
             "name": "",  # Boş name
             "email": "invalid-email",  # Geçersiz email
-            "role": "invalid_role"
+            "role": "invalid_role",
         }
         response = mock_enabled_client.post("/mock/users/", json=invalid_user)
         # Validation hatası olabilir veya başarılı olabilir (mock service'e bağlı)
@@ -290,7 +296,7 @@ class TestMockEndpointsCRUD:
             "product_name": "Test",
             "quantity": -10,  # Negatif quantity
             "unit_price": 25.99,
-            "supplier": "Test"
+            "supplier": "Test",
         }
         response = mock_enabled_client.post("/mock/stocks/", json=invalid_stock)
         # Validation hatası olabilir veya başarılı olabilir (mock service'e bağlı)
@@ -303,7 +309,7 @@ class TestMockVsRealEndpoints:
     def test_real_endpoints_require_auth(self, mock_disabled_client):
         """Gerçek endpoint'ler auth gerektirmeli."""
         endpoints = ["/api/v1/users/", "/api/v1/stocks/", "/api/v1/orders/"]
-        
+
         for endpoint in endpoints:
             response = mock_disabled_client.get(endpoint)
             # Auth gerektiren endpoint'ler 401 veya 403 döner
@@ -312,7 +318,7 @@ class TestMockVsRealEndpoints:
     def test_mock_endpoints_no_auth_required(self, mock_enabled_client):
         """Mock endpoint'ler auth gerektirmemeli."""
         endpoints = ["/mock/users", "/mock/stocks", "/mock/orders"]
-        
+
         for endpoint in endpoints:
             response = mock_enabled_client.get(endpoint)
             assert response.status_code == 200
@@ -322,12 +328,12 @@ class TestMockVsRealEndpoints:
         # Mock endpoint (auth gerektirmez)
         mock_response = mock_enabled_client.get("/mock/users")
         assert mock_response.status_code == 200
-        
+
         # Real endpoint (auth gerektirir)
         real_response = mock_enabled_client.get("/api/v1/users/", headers=auth_headers)
         # Auth header'ı varsa 200, yoksa 401/403
         assert real_response.status_code in [200, 401, 403]
-        
+
         # Farklı veri kaynaklarından gelmeli
         mock_users = mock_response.json()
         assert isinstance(mock_users, list)
@@ -338,7 +344,7 @@ class TestMockVsRealEndpoints:
         # Mock endpoint'ler /mock prefix'i kullanmalı
         mock_response = mock_enabled_client.get("/mock/users")
         assert mock_response.status_code == 200
-        
+
         # Gerçek endpoint'ler /api/v1 prefix'i kullanmalı
         real_response = mock_enabled_client.get("/api/v1/users/")
         assert real_response.status_code in [401, 403]  # Auth gerekli
@@ -353,22 +359,22 @@ class TestMockDataConsistency:
         initial_response = mock_enabled_client.get("/mock/users")
         initial_users = initial_response.json()
         initial_count = len(initial_users)
-        
+
         # Yeni user ekle
         user_data = {
             "name": "Session Persistence User",
             "email": f"session-{uuid.uuid4()}@test.com",
             "role": "user",
             "is_active": True,
-            "password": "test123"
+            "password": "test123",
         }
         mock_enabled_client.post("/mock/users/", json=user_data)
-        
+
         # Tekrar kontrol et
         final_response = mock_enabled_client.get("/mock/users")
         final_users = final_response.json()
         final_count = len(final_users)
-        
+
         assert final_count == initial_count + 1
 
     def test_mock_data_independence_per_service(self, mock_enabled_client):
@@ -379,10 +385,10 @@ class TestMockDataConsistency:
             "email": f"independence-{uuid.uuid4()}@test.com",
             "role": "user",
             "is_active": True,
-            "password": "test123"
+            "password": "test123",
         }
         mock_enabled_client.post("/mock/users/", json=user_data)
-        
+
         # Stocks etkilenmemeli
         stocks_response = mock_enabled_client.get("/mock/stocks")
         stocks = stocks_response.json()
@@ -394,11 +400,11 @@ class TestMockDataConsistency:
         users_response = mock_enabled_client.get("/mock/users")
         users = users_response.json()
         assert 5 <= len(users) <= 50  # Makul range
-        
+
         stocks_response = mock_enabled_client.get("/mock/stocks")
         stocks = stocks_response.json()
         assert 5 <= len(stocks) <= 100  # Makul range
-        
+
         orders_response = mock_enabled_client.get("/mock/orders")
         orders = orders_response.json()
         assert 3 <= len(orders) <= 50  # Makul range
@@ -411,23 +417,24 @@ class TestEnvironmentToggling:
         """Environment variable öncelik sırası."""
         # Default false
         from ..core.settings import Settings
+
         default_settings = Settings()
-        assert hasattr(default_settings, 'USE_MOCK')
-        
+        assert hasattr(default_settings, "USE_MOCK")
+
         # Environment override
-        with patch.dict(os.environ, {'USE_MOCK': 'true'}):
+        with patch.dict(os.environ, {"USE_MOCK": "true"}):
             env_settings = Settings()
             assert env_settings.USE_MOCK == True
-            
-        with patch.dict(os.environ, {'USE_MOCK': 'false'}):
+
+        with patch.dict(os.environ, {"USE_MOCK": "false"}):
             env_settings = Settings()
             assert env_settings.USE_MOCK == False
 
-    @patch.dict(os.environ, {'USE_MOCK': 'invalid_value'})
+    @patch.dict(os.environ, {"USE_MOCK": "invalid_value"})
     def test_invalid_environment_value_handling(self):
         """Geçersiz environment value handling."""
         from ..core.settings import Settings
-        
+
         # Pydantic boolean parsing
         try:
             settings = Settings()
@@ -440,18 +447,41 @@ class TestEnvironmentToggling:
     def test_boolean_parsing_variations(self):
         """Farklı boolean değer formatları test edilmeli."""
         from ..core.settings import Settings
-        
+
         # True değerleri
-        true_values = ['true', 'True', 'TRUE', '1', 'yes', 'Yes', 'YES', 'on', 'On', 'ON']
+        true_values = [
+            "true",
+            "True",
+            "TRUE",
+            "1",
+            "yes",
+            "Yes",
+            "YES",
+            "on",
+            "On",
+            "ON",
+        ]
         for value in true_values:
-            with patch.dict(os.environ, {'USE_MOCK': value}):
+            with patch.dict(os.environ, {"USE_MOCK": value}):
                 settings = Settings()
                 assert settings.USE_MOCK == True
-        
+
         # False değerleri
-        false_values = ['false', 'False', 'FALSE', '0', 'no', 'No', 'NO', 'off', 'Off', 'OFF', '']
+        false_values = [
+            "false",
+            "False",
+            "FALSE",
+            "0",
+            "no",
+            "No",
+            "NO",
+            "off",
+            "Off",
+            "OFF",
+            "",
+        ]
         for value in false_values:
-            with patch.dict(os.environ, {'USE_MOCK': value}):
+            with patch.dict(os.environ, {"USE_MOCK": value}):
                 settings = Settings()
                 assert settings.USE_MOCK == False
 
@@ -465,18 +495,18 @@ class TestSwaggerUIDocumentation:
         response = mock_enabled_client.get("/api/v1/openapi.json")
         assert response.status_code == 200
         schema = response.json()
-        
+
         # Mock endpoint'lerin paths'de olması
         paths = schema.get("paths", {})
-        
+
         # Mock users endpoint'i kontrol et
         assert "/mock/users" in paths
         assert "/mock/users/{user_id}" in paths
-        
+
         # Mock stocks endpoint'i kontrol et
         assert "/mock/stocks" in paths
         assert "/mock/stocks/{stock_id}" in paths
-        
+
         # Mock orders endpoint'i kontrol et
         assert "/mock/orders" in paths
         assert "/mock/orders/{order_id}" in paths
@@ -487,10 +517,10 @@ class TestSwaggerUIDocumentation:
         response = mock_disabled_client.get("/api/v1/openapi.json")
         assert response.status_code == 200
         schema = response.json()
-        
+
         # Mock endpoint'lerin paths'de olmaması
         paths = schema.get("paths", {})
-        
+
         # Mock endpoint'ler olmamalı
         assert "/mock/users" not in paths
         assert "/mock/stocks" not in paths
@@ -502,17 +532,17 @@ class TestSwaggerUIDocumentation:
         response = mock_enabled_client.get("/api/v1/openapi.json")
         assert response.status_code == 200
         schema = response.json()
-        
+
         # Mock endpoint'lerin paths'de olması
         paths = schema.get("paths", {})
-        
+
         # Mock endpoint'lerin varlığını kontrol et
         mock_paths = ["/mock/users", "/mock/stocks", "/mock/orders"]
         for path in mock_paths:
             if path in paths:
                 # Her mock endpoint'in en az bir HTTP method'u olmalı
                 assert len(paths[path]) > 0
-                
+
                 # Endpoint'lerin summary veya description'ı olmalı
                 for method in paths[path]:
                     endpoint = paths[path][method]
@@ -530,11 +560,11 @@ class TestErrorHandling:
         assert response.status_code == 404
         data = response.json()
         assert "not found" in data["detail"].lower()
-        
+
         # Var olmayan stock
         response = mock_enabled_client.get("/mock/stocks/99999")
         assert response.status_code == 404
-        
+
         # Var olmayan order
         response = mock_enabled_client.get("/mock/orders/99999")
         assert response.status_code == 404
@@ -543,7 +573,7 @@ class TestErrorHandling:
         """Mock endpoint'lerde geçersiz ID handling."""
         # Geçersiz ID formatları
         invalid_ids = ["abc", "-1", "0", "1.5"]
-        
+
         for invalid_id in invalid_ids:
             response = mock_enabled_client.get(f"/mock/users/{invalid_id}")
             assert response.status_code in [404, 422]  # 422 validation error olabilir
@@ -552,4 +582,4 @@ class TestErrorHandling:
         """Mock router import hatası handling."""
         # Bu test mock_services import hatası simüle eder
         # Gerçek uygulamada bu durum main.py'de handle edilir
-        pass 
+        pass

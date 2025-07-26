@@ -16,7 +16,7 @@ class TestStocksWithAuth:
             "product_name": f"Test Product {uuid.uuid4()}",
             "quantity": 100,
             "unit_price": 25.99,
-            "supplier": "Test Supplier"
+            "supplier": "Test Supplier",
         }
         response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
         assert response.status_code == 201
@@ -35,7 +35,9 @@ class TestStocksWithAuth:
     def test_get_stock_by_id(self, client, auth_headers, create_test_stock):
         """ID'ye göre stok getirme testi."""
         if create_test_stock:
-            response = client.get(f"/api/v1/stocks/{create_test_stock}", headers=auth_headers)
+            response = client.get(
+                f"/api/v1/stocks/{create_test_stock}", headers=auth_headers
+            )
             assert response.status_code == 200
             stock = response.json()
             assert stock["id"] == create_test_stock
@@ -44,8 +46,11 @@ class TestStocksWithAuth:
         """Stok güncelleme testi."""
         if create_test_stock:
             update_data = {"quantity": 200}
-            response = client.put(f"/api/v1/stocks/{create_test_stock}", 
-                                json=update_data, headers=auth_headers)
+            response = client.put(
+                f"/api/v1/stocks/{create_test_stock}",
+                json=update_data,
+                headers=auth_headers,
+            )
             assert response.status_code == 200
             updated_stock = response.json()
             assert updated_stock["quantity"] == 200
@@ -57,14 +62,18 @@ class TestStocksWithAuth:
             "product_name": f"Delete Test Stock {uuid.uuid4()}",
             "quantity": 50,
             "unit_price": 15.99,
-            "supplier": "Delete Test Supplier"
+            "supplier": "Delete Test Supplier",
         }
-        create_response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
+        create_response = client.post(
+            "/api/v1/stocks/", json=stock_data, headers=auth_headers
+        )
         assert create_response.status_code == 201
         stock_id = create_response.json()["id"]
 
         # Sonra sil
-        delete_response = client.delete(f"/api/v1/stocks/{stock_id}", headers=auth_headers)
+        delete_response = client.delete(
+            f"/api/v1/stocks/{stock_id}", headers=auth_headers
+        )
         assert delete_response.status_code == 204
 
         # Silindiğini kontrol et
@@ -81,7 +90,7 @@ class TestStocksValidation:
             "product_name": "Negative Stock",
             "quantity": -10,
             "unit_price": 25.99,
-            "supplier": "Test Supplier"
+            "supplier": "Test Supplier",
         }
         response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
         assert response.status_code == 422
@@ -92,7 +101,7 @@ class TestStocksValidation:
             "product_name": "",
             "quantity": 10,
             "unit_price": 25.99,
-            "supplier": "Test Supplier"
+            "supplier": "Test Supplier",
         }
         response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
         assert response.status_code == 422
@@ -126,7 +135,7 @@ class TestStocksUnauthorized:
             "product_name": "Test Stock",
             "quantity": 100,
             "unit_price": 25.99,
-            "supplier": "Test Supplier"
+            "supplier": "Test Supplier",
         }
         response = client.post("/api/v1/stocks/", json=stock_data)
-        assert response.status_code == 403 
+        assert response.status_code == 403

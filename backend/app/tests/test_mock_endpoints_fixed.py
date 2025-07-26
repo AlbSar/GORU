@@ -13,19 +13,22 @@ from unittest.mock import patch
 def mock_client(client):
     """Mock mode'da test client."""
     # Mock environment'ı set et
-    with patch.dict(os.environ, {'USE_MOCK': 'true'}):
+    with patch.dict(os.environ, {"USE_MOCK": "true"}):
         # Settings'i yeniden yükle
         from ..core.settings import Settings
+
         test_settings = Settings()
-        
+
         # App'e mock router'ını ekle
         from ..main import app
         from ..mock_routes import mock_router
-        
+
         # Router'ı temizle ve yeniden ekle
-        app.router.routes = [r for r in app.router.routes if not str(r.path).startswith('/mock')]
+        app.router.routes = [
+            r for r in app.router.routes if not str(r.path).startswith("/mock")
+        ]
         app.include_router(mock_router)
-        
+
         yield client
 
 
@@ -39,7 +42,7 @@ class TestMockUsers:
         users = response.json()
         assert isinstance(users, list)
         assert len(users) >= 5  # faker ile en az 5 kullanıcı oluşturulur
-        
+
         # İlk kullanıcının yapısını kontrol et
         if users:
             user = users[0]
@@ -53,7 +56,7 @@ class TestMockUsers:
         # Önce liste al
         response = mock_client.get("/mock/users")
         users = response.json()
-        
+
         if users:
             user_id = users[0]["id"]
             response = mock_client.get(f"/mock/users/{user_id}")
@@ -68,7 +71,7 @@ class TestMockUsers:
             "email": f"mock-{uuid.uuid4()}@test.com",
             "role": "user",
             "is_active": True,
-            "password": "test123"
+            "password": "test123",
         }
         response = mock_client.post("/mock/users/", json=user_data)
         assert response.status_code == 201
@@ -85,11 +88,11 @@ class TestMockUsers:
             "email": f"update-{uuid.uuid4()}@test.com",
             "role": "user",
             "is_active": True,
-            "password": "test123"
+            "password": "test123",
         }
         create_response = mock_client.post("/mock/users/", json=user_data)
         user_id = create_response.json()["id"]
-        
+
         # Güncelle
         update_data = {"name": "Updated Mock User"}
         response = mock_client.put(f"/mock/users/{user_id}", json=update_data)
@@ -105,15 +108,15 @@ class TestMockUsers:
             "email": f"delete-{uuid.uuid4()}@test.com",
             "role": "user",
             "is_active": True,
-            "password": "test123"
+            "password": "test123",
         }
         create_response = mock_client.post("/mock/users/", json=user_data)
         user_id = create_response.json()["id"]
-        
+
         # Sil
         response = mock_client.delete(f"/mock/users/{user_id}")
         assert response.status_code == 204
-        
+
         # Silindiğini kontrol et
         get_response = mock_client.get(f"/mock/users/{user_id}")
         assert get_response.status_code == 404
@@ -136,7 +139,7 @@ class TestMockStocks:
             "product_name": f"Mock Product {uuid.uuid4()}",
             "quantity": 100,
             "unit_price": 25.99,
-            "supplier": "Mock Supplier"
+            "supplier": "Mock Supplier",
         }
         response = mock_client.post("/mock/stocks/", json=stock_data)
         assert response.status_code == 201
@@ -151,11 +154,11 @@ class TestMockStocks:
             "product_name": f"Update Stock {uuid.uuid4()}",
             "quantity": 50,
             "unit_price": 15.99,
-            "supplier": "Update Supplier"
+            "supplier": "Update Supplier",
         }
         create_response = mock_client.post("/mock/stocks/", json=stock_data)
         stock_id = create_response.json()["id"]
-        
+
         # Güncelle
         update_data = {"quantity": 200}
         response = mock_client.put(f"/mock/stocks/{stock_id}", json=update_data)
@@ -170,11 +173,11 @@ class TestMockStocks:
             "product_name": f"Delete Stock {uuid.uuid4()}",
             "quantity": 25,
             "unit_price": 12.50,
-            "supplier": "Delete Supplier"
+            "supplier": "Delete Supplier",
         }
         create_response = mock_client.post("/mock/stocks/", json=stock_data)
         stock_id = create_response.json()["id"]
-        
+
         # Sil
         response = mock_client.delete(f"/mock/stocks/{stock_id}")
         assert response.status_code == 204
@@ -202,9 +205,9 @@ class TestMockOrders:
                     "product_id": 1,
                     "quantity": 2,
                     "unit_price": 75.375,
-                    "total_price": 150.75
+                    "total_price": 150.75,
                 }
-            ]
+            ],
         }
         response = mock_client.post("/mock/orders/", json=order_data)
         assert response.status_code == 201
@@ -219,11 +222,11 @@ class TestMockOrders:
             "user_id": 1,
             "total_amount": 100.0,
             "status": "pending",
-            "order_items": []
+            "order_items": [],
         }
         create_response = mock_client.post("/mock/orders/", json=order_data)
         order_id = create_response.json()["id"]
-        
+
         # Güncelle
         update_data = {"status": "completed"}
         response = mock_client.put(f"/mock/orders/{order_id}", json=update_data)
@@ -240,7 +243,7 @@ class TestMockValidation:
         invalid_data = {
             "name": "",  # Boş isim
             "email": "invalid-email",  # Geçersiz email
-            "role": "invalid_role"  # Geçersiz rol
+            "role": "invalid_role",  # Geçersiz rol
         }
         response = mock_client.post("/mock/users/", json=invalid_data)
         assert response.status_code == 422
@@ -251,7 +254,7 @@ class TestMockValidation:
             "product_name": "Test Product",
             "quantity": -10,  # Negatif miktar
             "unit_price": 25.99,
-            "supplier": "Test Supplier"
+            "supplier": "Test Supplier",
         }
         response = mock_client.post("/mock/stocks/", json=invalid_stock)
         assert response.status_code == 422
@@ -260,10 +263,10 @@ class TestMockValidation:
         """Mock olmayan kaynak testi."""
         response = mock_client.get("/mock/users/99999")
         assert response.status_code == 404
-        
+
         response = mock_client.get("/mock/stocks/99999")
         assert response.status_code == 404
-        
+
         response = mock_client.get("/mock/orders/99999")
         assert response.status_code == 404
 
@@ -279,11 +282,11 @@ class TestMockServiceFunctionality:
             "email": f"persist-{uuid.uuid4()}@test.com",
             "role": "user",
             "is_active": True,
-            "password": "test123"
+            "password": "test123",
         }
         create_response = mock_client.post("/mock/users/", json=user_data)
         user_id = create_response.json()["id"]
-        
+
         # Aynı session'da veriyi tekrar al
         get_response = mock_client.get(f"/mock/users/{user_id}")
         assert get_response.status_code == 200
@@ -294,18 +297,18 @@ class TestMockServiceFunctionality:
         # Her test için bağımsız mock data olduğunu kontrol et
         initial_response = mock_client.get("/mock/users")
         initial_count = len(initial_response.json())
-        
+
         # Yeni kullanıcı ekle
         user_data = {
             "name": "Isolation Test User",
             "email": f"isolation-{uuid.uuid4()}@test.com",
             "role": "user",
             "is_active": True,
-            "password": "test123"
+            "password": "test123",
         }
         mock_client.post("/mock/users/", json=user_data)
-        
+
         # Sayının arttığını kontrol et
         final_response = mock_client.get("/mock/users")
         final_count = len(final_response.json())
-        assert final_count == initial_count + 1 
+        assert final_count == initial_count + 1

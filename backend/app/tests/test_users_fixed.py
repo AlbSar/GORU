@@ -17,7 +17,7 @@ class TestUsersWithAuth:
             "email": f"test-{uuid.uuid4()}@example.com",
             "role": "admin",
             "is_active": True,
-            "password": "test123"
+            "password": "test123",
         }
         response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
         assert response.status_code == 201
@@ -36,7 +36,9 @@ class TestUsersWithAuth:
     def test_get_user_by_id(self, client, auth_headers, create_test_user):
         """ID'ye göre kullanıcı getirme testi."""
         if create_test_user:
-            response = client.get(f"/api/v1/users/{create_test_user}", headers=auth_headers)
+            response = client.get(
+                f"/api/v1/users/{create_test_user}", headers=auth_headers
+            )
             assert response.status_code == 200
             user = response.json()
             assert user["id"] == create_test_user
@@ -45,8 +47,11 @@ class TestUsersWithAuth:
         """Kullanıcı güncelleme testi."""
         if create_test_user:
             update_data = {"name": "Updated User Name"}
-            response = client.put(f"/api/v1/users/{create_test_user}", 
-                                json=update_data, headers=auth_headers)
+            response = client.put(
+                f"/api/v1/users/{create_test_user}",
+                json=update_data,
+                headers=auth_headers,
+            )
             assert response.status_code == 200
             updated_user = response.json()
             assert updated_user["name"] == "Updated User Name"
@@ -59,14 +64,18 @@ class TestUsersWithAuth:
             "email": f"delete-{uuid.uuid4()}@example.com",
             "role": "user",
             "is_active": True,
-            "password": "test123"
+            "password": "test123",
         }
-        create_response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
+        create_response = client.post(
+            "/api/v1/users/", json=user_data, headers=auth_headers
+        )
         assert create_response.status_code == 201
         user_id = create_response.json()["id"]
 
         # Sonra sil
-        delete_response = client.delete(f"/api/v1/users/{user_id}", headers=auth_headers)
+        delete_response = client.delete(
+            f"/api/v1/users/{user_id}", headers=auth_headers
+        )
         assert delete_response.status_code == 204
 
         # Silindiğini kontrol et
@@ -81,9 +90,9 @@ class TestUsersWithAuth:
             "email": email,
             "role": "user",
             "is_active": True,
-            "password": "test123"
+            "password": "test123",
         }
-        
+
         # İlk kullanıcıyı oluştur
         response1 = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
         assert response1.status_code == 201
@@ -104,7 +113,7 @@ class TestUsersValidation:
             "email": "invalid-email",
             "role": "user",
             "is_active": True,
-            "password": "test123"
+            "password": "test123",
         }
         response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
         assert response.status_code == 422
@@ -139,7 +148,7 @@ class TestUsersUnauthorized:
             "email": "test@example.com",
             "role": "user",
             "is_active": True,
-            "password": "test123"
+            "password": "test123",
         }
         response = client.post("/api/v1/users/", json=user_data)
         assert response.status_code == 403
@@ -152,4 +161,4 @@ class TestUsersUnauthorized:
     def test_delete_user_without_auth(self, client):
         """Yetkilendirme olmadan kullanıcı silme."""
         response = client.delete("/api/v1/users/1")
-        assert response.status_code == 403 
+        assert response.status_code == 403

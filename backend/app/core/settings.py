@@ -28,7 +28,9 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "GORU ERP Backend"
 
     # CORS Configuration
-    BACKEND_CORS_ORIGINS: Union[List[str], str] = '["http://localhost:3000", "http://localhost:8080"]'
+    BACKEND_CORS_ORIGINS: Union[List[str], str] = (
+        '["http://localhost:3000", "http://localhost:8080"]'
+    )
 
     # Environment Configuration
     APP_ENV: str = "development"
@@ -65,28 +67,32 @@ class Settings(BaseSettings):
     def parse_use_mock(cls, v):
         """
         USE_MOCK environment variable'ını boolean'a çevirir.
-        
+
         Args:
             v: Environment variable değeri (string veya bool)
-            
+
         Returns:
             bool: Parse edilmiş boolean değer
         """
         if isinstance(v, bool):
             return v
-        
+
         if isinstance(v, str):
             # String'den boolean'a çevir
             v_lower = v.lower().strip()
-            if v_lower in ('true', '1', 'yes', 'on', 'enabled'):
+            if v_lower in ("true", "1", "yes", "on", "enabled"):
                 return True
-            elif v_lower in ('false', '0', 'no', 'off', 'disabled', ''):
+            elif v_lower in ("false", "0", "no", "off", "disabled", ""):
                 return False
             else:
                 # Geçersiz değer için default false
-                print("Geçersiz USE_MOCK değeri: '{}'. Default false kullanılıyor.".format(v))
+                print(
+                    "Geçersiz USE_MOCK değeri: '{}'. Default false kullanılıyor.".format(
+                        v
+                    )
+                )
                 return False
-        
+
         return False
 
     def get_cors_origins(self) -> List[str]:
@@ -106,7 +112,7 @@ class Settings(BaseSettings):
     def get_mock_status(self) -> dict:
         """
         Mock sistem durumunu döndürür.
-        
+
         Returns:
             dict: Mock sistem durumu bilgileri
         """
@@ -114,7 +120,7 @@ class Settings(BaseSettings):
             "enabled": self.USE_MOCK,
             "prefix": self.MOCK_API_PREFIX,
             "environment": os.getenv("USE_MOCK", "not_set"),
-            "parsed_value": self.USE_MOCK
+            "parsed_value": self.USE_MOCK,
         }
 
     class Config:

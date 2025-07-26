@@ -43,6 +43,7 @@ app.include_router(router, prefix=settings.API_V1_STR)
 if settings.USE_MOCK:
     try:
         from .mock_routes import mock_router
+
         app.include_router(mock_router)
         print("Mock router aktif: {} prefix'i ile".format(settings.MOCK_API_PREFIX))
     except ImportError as e:
@@ -57,7 +58,7 @@ else:
 def read_root():
     """
     API root endpoint.
-    
+
     Returns:
         dict: API durumu ve konfigürasyon bilgileri
     """
@@ -76,7 +77,7 @@ def read_root():
 def health_check():
     """
     Health check endpoint.
-    
+
     Returns:
         dict: Sistem sağlık durumu
     """

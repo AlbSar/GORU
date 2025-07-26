@@ -64,7 +64,7 @@ def test_user_data():
         "email": "test@example.com",
         "role": "admin",
         "is_active": True,
-        "password": "test123"
+        "password": "test123",
     }
 
 
@@ -75,7 +75,7 @@ def test_stock_data():
         "product_name": "Test Product",
         "quantity": 100,
         "unit_price": 25.99,
-        "supplier": "Test Supplier"
+        "supplier": "Test Supplier",
     }
 
 
@@ -87,13 +87,8 @@ def test_order_data():
         "total_amount": 150.75,
         "status": "pending",
         "order_items": [
-            {
-                "product_id": 1,
-                "quantity": 2,
-                "unit_price": 50.25,
-                "total_price": 100.50
-            }
-        ]
+            {"product_id": 1, "quantity": 2, "unit_price": 50.25, "total_price": 100.50}
+        ],
     }
 
 
@@ -112,7 +107,7 @@ def create_test_user(client, auth_headers):
         "email": "fixture@test.com",
         "role": "user",
         "is_active": True,
-        "password": "test123"
+        "password": "test123",
     }
     response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
     if response.status_code == 201:
@@ -127,7 +122,7 @@ def create_test_stock(client, auth_headers):
         "product_name": "Fixture Test Stock",
         "quantity": 50,
         "unit_price": 15.99,
-        "supplier": "Fixture Supplier"
+        "supplier": "Fixture Supplier",
     }
     response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
     if response.status_code == 201:
@@ -140,12 +135,6 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )
-    config.addinivalue_line(
-        "markers", "integration: marks tests as integration tests"
-    )
-    config.addinivalue_line(
-        "markers", "unit: marks tests as unit tests"
-    )
-    config.addinivalue_line(
-        "markers", "auth: marks tests that require authentication"
-    ) 
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")
+    config.addinivalue_line("markers", "unit: marks tests as unit tests")
+    config.addinivalue_line("markers", "auth: marks tests that require authentication")
