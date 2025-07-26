@@ -24,9 +24,7 @@ class DataAnonymizer:
         username, domain = email.split("@", 1)
         # İlk ve son karakteri saklayıp ortasını * ile değiştir
         if len(username) > 2:
-            anonymized_username = (
-                username[0] + "*" * (len(username) - 2) + username[-1]
-            )
+            anonymized_username = username[0] + "*" * (len(username) - 2) + username[-1]
         else:
             anonymized_username = "*" * len(username)
 
@@ -89,19 +87,13 @@ class DataAnonymizer:
         anonymized = user_data.copy()
 
         if "email" in anonymized:
-            anonymized["email"] = DataAnonymizer.anonymize_email(
-                anonymized["email"]
-            )
+            anonymized["email"] = DataAnonymizer.anonymize_email(anonymized["email"])
 
         if "name" in anonymized:
-            anonymized["name"] = DataAnonymizer.anonymize_name(
-                anonymized["name"]
-            )
+            anonymized["name"] = DataAnonymizer.anonymize_name(anonymized["name"])
 
         if "phone" in anonymized:
-            anonymized["phone"] = DataAnonymizer.anonymize_phone(
-                anonymized["phone"]
-            )
+            anonymized["phone"] = DataAnonymizer.anonymize_phone(anonymized["phone"])
 
         return anonymized
 
@@ -130,27 +122,21 @@ class DataAnonymizer:
             for field in fields_to_anonymize:
                 if field in anonymized_item:
                     if field == "email":
-                        anonymized_item[field] = (
-                            DataAnonymizer.anonymize_email(
-                                anonymized_item[field]
-                            )
+                        anonymized_item[field] = DataAnonymizer.anonymize_email(
+                            anonymized_item[field]
                         )
                     elif field == "name":
                         anonymized_item[field] = DataAnonymizer.anonymize_name(
                             anonymized_item[field]
                         )
                     elif field == "phone":
-                        anonymized_item[field] = (
-                            DataAnonymizer.anonymize_phone(
-                                anonymized_item[field]
-                            )
+                        anonymized_item[field] = DataAnonymizer.anonymize_phone(
+                            anonymized_item[field]
                         )
                     else:
                         # Genel hash-based pseudonymization
-                        anonymized_item[field] = (
-                            DataAnonymizer.pseudonymize_with_hash(
-                                str(anonymized_item[field])
-                            )
+                        anonymized_item[field] = DataAnonymizer.pseudonymize_with_hash(
+                            str(anonymized_item[field])
                         )
 
             anonymized_list.append(anonymized_item)

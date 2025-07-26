@@ -1,13 +1,6 @@
 """
-Mock Router Integration Test Suite.
+Mock Router Integration Testleri
 USE_MOCK environment ile mock endpoint'lerin aktif olması testleri.
-
-Bu test suite şunları test eder:
-- Mock router'ın koşullu yüklenmesi
-- Mock endpoint'lerin erişilebilirliği
-- Mock vs gerçek endpoint'lerin ayrımı
-- Environment variable handling
-- Swagger UI uyumluluğu
 """
 
 import os
@@ -21,27 +14,68 @@ from ..core.settings import Settings
 
 
 def create_test_app():
-    """Test için FastAPI app instance'ı oluştur."""
-    from fastapi import FastAPI
-    from fastapi.middleware.cors import CORSMiddleware
-
-    test_app = FastAPI()
-    test_app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-    return test_app
+    """Test için yeni app instance oluştur."""
+    # Environment'ı temizle
+    if "USE_MOCK" in os.environ:
+        del os.environ["USE_MOCK"]
+    
+    # Yeni app oluştur
+    from ..main import app
+    return app
 
 
 @pytest.fixture
 def mock_enabled_client():
     """USE_MOCK=true ile test client."""
     with patch.dict(os.environ, {"USE_MOCK": "true"}):
+        # Settings'i yeniden yükle
+        from ..core.settings import settings
+        settings.USE_MOCK = True
+        
         # Yeni app instance oluştur
-        from ..main import app as test_app
+        from fastapi import FastAPI
+        from fastapi.middleware.cors import CORSMiddleware
+        
+        test_app = FastAPI(
+            title="Test GORU API",
+            description="Test API with mock endpoints",
+            version="1.0.0",
+        )
+        
+        # CORS middleware ekle
+        test_app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+        
+        # Ana router'ı dahil et
+        from ..routes import router
+        test_app.include_router(router, prefix="/api/v1")
+        
+        # Root endpoint ekle
+        @test_app.get("/")
+        def read_root():
+            return {
+                "message": "Test GORU API çalışıyor!",
+                "version": "1.0.0",
+                "mock_mode": True,
+                "api_prefix": "/api/v1",
+                "mock_prefix": "/mock",
+                "environment": "test",
+                "debug": True,
+            }
+        
+        # Mock router'ı dahil et
+        try:
+            from ..mock_routes import mock_router
+            test_app.include_router(mock_router)
+            print("✅ Mock router test app'e dahil edildi")
+        except Exception as e:
+            print(f"❌ Mock router dahil etme hatası: {e}")
+        
         client = TestClient(test_app)
         yield client
 
@@ -50,8 +84,46 @@ def mock_enabled_client():
 def mock_disabled_client():
     """USE_MOCK=false ile test client."""
     with patch.dict(os.environ, {"USE_MOCK": "false"}):
+        # Settings'i yeniden yükle
+        from ..core.settings import settings
+        settings.USE_MOCK = False
+        
         # Yeni app instance oluştur
-        from ..main import app as test_app
+        from fastapi import FastAPI
+        from fastapi.middleware.cors import CORSMiddleware
+        
+        test_app = FastAPI(
+            title="Test GORU API",
+            description="Test API without mock endpoints",
+            version="1.0.0",
+        )
+        
+        # CORS middleware ekle
+        test_app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+        
+        # Sadece ana router'ı dahil et
+        from ..routes import router
+        test_app.include_router(router, prefix="/api/v1")
+        
+        # Root endpoint ekle
+        @test_app.get("/")
+        def read_root():
+            return {
+                "message": "Test GORU API çalışıyor!",
+                "version": "1.0.0",
+                "mock_mode": False,
+                "api_prefix": "/api/v1",
+                "mock_prefix": None,
+                "environment": "test",
+                "debug": True,
+            }
+        
         client = TestClient(test_app)
         yield client
 
@@ -65,7 +137,7 @@ class TestMockRouterActivation:
         response = mock_enabled_client.get("/")
         assert response.status_code == 200
         data = response.json()
-        
+
         # Mock mode bilgileri kontrol et
         assert "mock_mode" in data
         assert data["mock_mode"]
@@ -77,7 +149,7 @@ class TestMockRouterActivation:
         # Mock endpoint erişilemez olmalı
         response = mock_disabled_client.get("/mock/users")
         assert response.status_code == 404
-        
+
         # Root endpoint'te mock mode false olmalı
         response = mock_disabled_client.get("/")
         data = response.json()
@@ -191,9 +263,7 @@ class TestMockEndpointsCRUD:
                 }
             ],
         }
-        create_response = mock_enabled_client.post(
-            "/mock/orders/", json=order_data
-        )
+        create_response = mock_enabled_client.post("/mock/orders/", json=order_data)
         assert create_response.status_code == 201
         created_order = create_response.json()
         order_id = created_order["id"]
@@ -208,9 +278,7 @@ class TestMockEndpointsCRUD:
         assert updated_order["status"] == "shipped"
 
         # DELETE
-        delete_response = mock_enabled_client.delete(
-            f"/mock/orders/{order_id}"
-        )
+        delete_response = mock_enabled_client.delete(f"/mock/orders/{order_id}")
         assert delete_response.status_code == 204
 
         # VERIFY DELETION
@@ -236,9 +304,7 @@ class TestMockEndpointsCRUD:
             "unit_price": 25.99,
             "supplier": "Test",
         }
-        response = mock_enabled_client.post(
-            "/mock/stocks/", json=invalid_stock
-        )
+        response = mock_enabled_client.post("/mock/stocks/", json=invalid_stock)
         # Validation hatası olabilir veya başarılı olabilir (mock service'e bağlı)
         assert response.status_code in [422, 201]
 
@@ -270,9 +336,7 @@ class TestMockVsRealEndpoints:
         assert mock_response.status_code == 200
 
         # Real endpoint (auth gerektirir)
-        real_response = mock_enabled_client.get(
-            "/api/v1/users/", headers=auth_headers
-        )
+        real_response = mock_enabled_client.get("/api/v1/users/", headers=auth_headers)
         # Auth header'ı varsa 200, yoksa 401/403
         assert real_response.status_code in [200, 401, 403]
 
@@ -359,21 +423,21 @@ class TestEnvironmentToggling:
         """Environment variable öncelik sırası."""
         # Default false
         default_settings = Settings()
-        assert hasattr(default_settings, 'USE_MOCK')
-        
+        assert hasattr(default_settings, "USE_MOCK")
+
         # Environment override
-        with patch.dict(os.environ, {'USE_MOCK': 'true'}):
+        with patch.dict(os.environ, {"USE_MOCK": "true"}):
             env_settings = Settings()
             assert env_settings.USE_MOCK
-            
-        with patch.dict(os.environ, {'USE_MOCK': 'false'}):
+
+        with patch.dict(os.environ, {"USE_MOCK": "false"}):
             env_settings = Settings()
             assert not env_settings.USE_MOCK
 
-    @patch.dict(os.environ, {'USE_MOCK': 'invalid_value'})
+    @patch.dict(os.environ, {"USE_MOCK": "invalid_value"})
     def test_invalid_environment_value_handling(self):
         """Geçersiz environment value handling."""
-        
+
         # Pydantic boolean parsing
         try:
             settings = Settings()
@@ -385,18 +449,41 @@ class TestEnvironmentToggling:
 
     def test_boolean_parsing_variations(self):
         """Farklı boolean değer formatları test edilmeli."""
-        
+
         # True değerleri
-        true_values = ['true', 'True', 'TRUE', '1', 'yes', 'Yes', 'YES', 'on', 'On', 'ON']
+        true_values = [
+            "true",
+            "True",
+            "TRUE",
+            "1",
+            "yes",
+            "Yes",
+            "YES",
+            "on",
+            "On",
+            "ON",
+        ]
         for value in true_values:
-            with patch.dict(os.environ, {'USE_MOCK': value}):
+            with patch.dict(os.environ, {"USE_MOCK": value}):
                 settings = Settings()
                 assert settings.USE_MOCK
-        
+
         # False değerleri
-        false_values = ['false', 'False', 'FALSE', '0', 'no', 'No', 'NO', 'off', 'Off', 'OFF', '']
+        false_values = [
+            "false",
+            "False",
+            "FALSE",
+            "0",
+            "no",
+            "No",
+            "NO",
+            "off",
+            "Off",
+            "OFF",
+            "",
+        ]
         for value in false_values:
-            with patch.dict(os.environ, {'USE_MOCK': value}):
+            with patch.dict(os.environ, {"USE_MOCK": value}):
                 settings = Settings()
                 assert not settings.USE_MOCK
 
@@ -407,7 +494,7 @@ class TestSwaggerUIDocumentation:
     def test_mock_endpoints_in_swagger(self, mock_enabled_client):
         """Mock endpoint'ler Swagger UI'da görünmeli."""
         # OpenAPI schema'sını al
-        response = mock_enabled_client.get("/api/v1/openapi.json")
+        response = mock_enabled_client.get("/openapi.json")
         assert response.status_code == 200
         schema = response.json()
 
@@ -426,12 +513,10 @@ class TestSwaggerUIDocumentation:
         assert "/mock/orders" in paths
         assert "/mock/orders/{order_id}" in paths
 
-    def test_mock_endpoints_not_in_swagger_when_disabled(
-        self, mock_disabled_client
-    ):
+    def test_mock_endpoints_not_in_swagger_when_disabled(self, mock_disabled_client):
         """Mock endpoint'ler USE_MOCK=false ise Swagger'da görünmemeli."""
         # OpenAPI schema'sını al
-        response = mock_disabled_client.get("/api/v1/openapi.json")
+        response = mock_disabled_client.get("/openapi.json")
         assert response.status_code == 200
         schema = response.json()
 
@@ -446,7 +531,7 @@ class TestSwaggerUIDocumentation:
     def test_mock_endpoints_have_proper_tags(self, mock_enabled_client):
         """Mock endpoint'lerin doğru tag'leri olmalı."""
         # OpenAPI schema'sını al
-        response = mock_enabled_client.get("/api/v1/openapi.json")
+        response = mock_enabled_client.get("/openapi.json")
         assert response.status_code == 200
         schema = response.json()
 

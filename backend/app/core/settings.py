@@ -19,9 +19,7 @@ class Settings(BaseSettings):
 
     # Database Configuration
     DATABASE_URL: str = "postgresql://goru:goru@localhost:5432/goru_db"
-    TEST_DATABASE_URL: str = (
-        "postgresql://goru:goru@localhost:5432/goru_test_db"
-    )
+    TEST_DATABASE_URL: str = "postgresql://goru:goru@localhost:5432/goru_test_db"
 
     # Application Configuration
     DEBUG: bool = True
@@ -88,8 +86,10 @@ class Settings(BaseSettings):
                 return False
             else:
                 # Geçersiz değer için default false
-                print("Geçersiz USE_MOCK değeri: '{}'. "
-                      "Default false kullanılıyor.".format(v))
+                print(
+                    "Geçersiz USE_MOCK değeri: '{}'. "
+                    "Default false kullanılıyor.".format(v)
+                )
                 return False
 
         return False
@@ -122,14 +122,12 @@ class Settings(BaseSettings):
             "parsed_value": self.USE_MOCK,
         }
 
-    class Config:
-        """
-        Pydantic konfigürasyon sınıfı.
-        """
-
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
+    model_config = {
+        "env_file": "../.env",
+        "env_file_encoding": "utf-8",
+        "case_sensitive": True,
+        "extra": "ignore",
+    }
 
 
 # Settings instance'ı oluştur

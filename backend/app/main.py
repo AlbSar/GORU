@@ -37,23 +37,26 @@ app.add_middleware(
 # Ana router'ı dahil et (gerçek API endpoint'leri)
 app.include_router(router, prefix=settings.API_V1_STR)
 
-# Mock router'ı koşullu olarak dahil et
-if settings.USE_MOCK:
+
+def setup_mock_router():
+    """Mock router'ı güvenli şekilde dahil et."""
+    if not settings.USE_MOCK:
+        print("Mock router devre dışı (USE_MOCK=false)")
+        return
+
     try:
         from .mock_routes import mock_router
 
         app.include_router(mock_router)
-        print(
-            "Mock router aktif: {} prefix'i ile".format(
-                settings.MOCK_API_PREFIX
-            )
-        )
+        print(f"✅ Mock router aktif: {settings.MOCK_API_PREFIX} prefix'i ile")
     except ImportError as e:
-        print("Mock router import hatası: {}".format(e))
+        print(f"❌ Mock router import hatası: {e}")
     except Exception as e:
-        print("Mock router dahil etme hatası: {}".format(e))
-else:
-    print("Mock router devre dışı (USE_MOCK=false)")
+        print(f"❌ Mock router dahil etme hatası: {e}")
+
+
+# Mock router'ı güvenli şekilde dahil et
+setup_mock_router()
 
 
 @app.get("/", tags=["System"])
@@ -69,9 +72,7 @@ def read_root():
         "version": "1.0.0",
         "mock_mode": settings.USE_MOCK,
         "api_prefix": settings.API_V1_STR,
-        "mock_prefix": (
-            settings.MOCK_API_PREFIX if settings.USE_MOCK else None
-        ),
+        "mock_prefix": (settings.MOCK_API_PREFIX if settings.USE_MOCK else None),
         "environment": settings.APP_ENV,
         "debug": settings.DEBUG,
     }
