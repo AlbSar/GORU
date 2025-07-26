@@ -98,10 +98,18 @@ def seed():
 
         # 6. Sipariş Kalemleri
         item1 = OrderItem(
-            order_id=1, product_id=1, quantity=1, unit_price=15000, total_price=15000
+            order_id=1,
+            product_id=1,
+            quantity=1,
+            unit_price=15000,
+            total_price=15000,
         )
         item2 = OrderItem(
-            order_id=1, product_id=2, quantity=1, unit_price=120, total_price=120
+            order_id=1,
+            product_id=2,
+            quantity=1,
+            unit_price=120,
+            total_price=120,
         )
         db.add_all([item1, item2])
         db.commit()

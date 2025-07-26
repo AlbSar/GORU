@@ -11,7 +11,6 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from .. import models
 from ..database import Base
 
 
@@ -29,17 +28,21 @@ class TestGenerateDummyData:
         database_url = f"sqlite:///{temp_db_file.name}"
 
         # Engine ve session oluştur
-        engine = create_engine(database_url, connect_args={"check_same_thread": False})
+        engine = create_engine(
+            database_url, connect_args={"check_same_thread": False}
+        )
         Base.metadata.create_all(bind=engine)
 
-        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        SessionLocal = sessionmaker(
+            autocommit=False, autoflush=False, bind=engine
+        )
 
         yield SessionLocal, database_url
 
         # Cleanup
         try:
             os.unlink(temp_db_file.name)
-        except:
+        except OSError:
             pass
 
     def test_import_generate_dummy_data(self):
@@ -101,7 +104,9 @@ class TestGenerateDummyData:
 
         # Mock users ve stocks query results
         mock_session.query.return_value.count.return_value = 10
-        mock_session.query.return_value.offset.return_value.first.return_value.id = 1
+        mock_session.query.return_value.offset.return_value.first.return_value.id = (
+            1
+        )
 
         # Test fonksiyon çağrısı
         count = 5
@@ -233,7 +238,9 @@ class TestCreateTablesScript:
         try:
             from ..scripts import create_tables
 
-            assert hasattr(create_tables, "main") or len(dir(create_tables)) > 0
+            assert (
+                hasattr(create_tables, "main") or len(dir(create_tables)) > 0
+            )
         except ImportError as e:
             pytest.fail(f"Create tables script import failed: {e}")
 
@@ -242,7 +249,6 @@ class TestCreateTablesScript:
     def test_create_tables_execution(self, mock_engine, mock_base):
         """Create tables execution testi."""
         try:
-            from ..scripts import create_tables
 
             # Script çalıştırılabilir olmalı
             # Mock'lar sayesinde gerçek veritabanı işlemi yapılmaz

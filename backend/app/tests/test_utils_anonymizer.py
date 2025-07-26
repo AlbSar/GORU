@@ -3,9 +3,7 @@ Utils/Anonymizer modülü testleri.
 Veri anonimleştirme ve pseudonymization fonksiyonlarını test eder.
 """
 
-import hashlib
 
-import pytest
 
 from ..utils.anonymizer import DataAnonymizer
 
@@ -78,7 +76,9 @@ class TestDataAnonymizer:
         # Çok kısa numara
         phone4 = "123"
         anonymized4 = DataAnonymizer.anonymize_phone(phone4)
-        assert anonymized4 == "123"  # 3 karakter veya daha az anonimleştirilmez
+        assert (
+            anonymized4 == "123"
+        )  # 3 karakter veya daha az anonimleştirilmez
 
     def test_pseudonymize_with_hash(self):
         """Hash ile pseudonymization testi."""
@@ -117,9 +117,9 @@ class TestDataAnonymizer:
         assert "." in fake_user["email"]
 
         # Telefon format kontrolü (Türkiye için)
-        assert fake_user["phone"].startswith("+90") or fake_user["phone"].startswith(
-            "0"
-        )
+        assert fake_user["phone"].startswith("+90") or fake_user[
+            "phone"
+        ].startswith("0")
 
         # İki kez çalıştırıldığında farklı veri üretmeli
         fake_user2 = DataAnonymizer.generate_fake_user_data()
@@ -151,7 +151,9 @@ class TestDataAnonymizer:
         anonymize_fields = ["name", "email", "phone"]
 
         # Anonimleştir
-        anonymized_dataset = DataAnonymizer.anonymize_dataset(dataset, anonymize_fields)
+        anonymized_dataset = DataAnonymizer.anonymize_dataset(
+            dataset, anonymize_fields
+        )
 
         # Anonimleştirilmiş veriyi kontrol et
         assert len(anonymized_dataset) == len(dataset)
@@ -236,7 +238,9 @@ class TestDataAnonymizer:
         salt = "test_salt"
 
         # Çoklu çalıştırmada aynı hash
-        hashes = [DataAnonymizer.pseudonymize_with_hash(data, salt) for _ in range(5)]
+        hashes = [
+            DataAnonymizer.pseudonymize_with_hash(data, salt) for _ in range(5)
+        ]
         assert all(h == hashes[0] for h in hashes)
 
         # Boş string hash
@@ -274,4 +278,6 @@ class TestDataAnonymizer:
 
         assert duration < 2.0  # 2 saniyeden az sürmeli
         assert len(result) == 100
-        assert all(record["name"] != f"User {record['id']}" for record in result)
+        assert all(
+            record["name"] != f"User {record['id']}" for record in result
+        )

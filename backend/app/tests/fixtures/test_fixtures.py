@@ -5,7 +5,6 @@ Test için kullanılacak fixture'lar ve helper fonksiyonlar.
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List
 
 import pytest
 from faker import Faker
@@ -22,7 +21,9 @@ TEST_DATABASE_URL = "sqlite:///./test.db"
 test_engine = create_engine(
     TEST_DATABASE_URL, connect_args={"check_same_thread": False}
 )
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+TestingSessionLocal = sessionmaker(
+    autocommit=False, autoflush=False, bind=test_engine
+)
 
 
 @pytest.fixture(scope="session")
@@ -75,7 +76,12 @@ def sample_order():
         "total_amount": 150.75,
         "status": "pending",
         "order_items": [
-            {"product_id": 1, "quantity": 2, "unit_price": 50.25, "total_price": 100.50}
+            {
+                "product_id": 1,
+                "quantity": 2,
+                "unit_price": 50.25,
+                "total_price": 100.50,
+            }
         ],
     }
 

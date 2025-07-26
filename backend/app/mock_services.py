@@ -4,7 +4,6 @@ USE_MOCK=true olduğunda gerçek veritabanı yerine kullanılacak mock veriler.
 """
 
 import random
-import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -97,7 +96,9 @@ class MockUserService:
 
     @staticmethod
     def get_by_id(user_id: int) -> Optional[Dict[str, Any]]:
-        return next((user for user in mock_data.users if user["id"] == user_id), None)
+        return next(
+            (user for user in mock_data.users if user["id"] == user_id), None
+        )
 
     @staticmethod
     def create(user_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -113,7 +114,9 @@ class MockUserService:
         return new_user
 
     @staticmethod
-    def update(user_id: int, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def update(
+        user_id: int, user_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         user = MockUserService.get_by_id(user_id)
         if user:
             user.update(user_data)
@@ -139,7 +142,8 @@ class MockOrderService:
     @staticmethod
     def get_by_id(order_id: int) -> Optional[Dict[str, Any]]:
         return next(
-            (order for order in mock_data.orders if order["id"] == order_id), None
+            (order for order in mock_data.orders if order["id"] == order_id),
+            None,
         )
 
     @staticmethod
@@ -156,7 +160,9 @@ class MockOrderService:
         return new_order
 
     @staticmethod
-    def update(order_id: int, order_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def update(
+        order_id: int, order_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         order = MockOrderService.get_by_id(order_id)
         if order:
             order.update(order_data)
@@ -182,7 +188,8 @@ class MockStockService:
     @staticmethod
     def get_by_id(stock_id: int) -> Optional[Dict[str, Any]]:
         return next(
-            (stock for stock in mock_data.stocks if stock["id"] == stock_id), None
+            (stock for stock in mock_data.stocks if stock["id"] == stock_id),
+            None,
         )
 
     @staticmethod
@@ -199,7 +206,9 @@ class MockStockService:
         return new_stock
 
     @staticmethod
-    def update(stock_id: int, stock_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def update(
+        stock_id: int, stock_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         stock = MockStockService.get_by_id(stock_id)
         if stock:
             stock.update(stock_data)

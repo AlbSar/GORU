@@ -118,7 +118,7 @@ class TestMockEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert "mock_mode" in data
-        assert data["mock_mode"] == True
+        assert data["mock_mode"]
 
 
 class TestMockDataConsistency:
@@ -161,8 +161,14 @@ class TestMockIntegration:
     def test_mock_crud_operations(self, mock_enabled_client):
         """Mock CRUD işlemlerinin tam döngüsünü test eder."""
         # CREATE
-        new_user = {"name": "CRUD Test User", "email": "crud@test.com", "role": "user"}
-        create_response = mock_enabled_client.post("/mock/users", json=new_user)
+        new_user = {
+            "name": "CRUD Test User",
+            "email": "crud@test.com",
+            "role": "user",
+        }
+        create_response = mock_enabled_client.post(
+            "/mock/users", json=new_user
+        )
         assert create_response.status_code == 201
         created_user = create_response.json()
         user_id = created_user["id"]
@@ -187,5 +193,7 @@ class TestMockIntegration:
         assert delete_response.status_code == 204
 
         # Deleted user artık bulunamaz
-        get_deleted_response = mock_enabled_client.get(f"/mock/users/{user_id}")
+        get_deleted_response = mock_enabled_client.get(
+            f"/mock/users/{user_id}"
+        )
         assert get_deleted_response.status_code == 404

@@ -2,7 +2,9 @@ import os
 import sys
 import uuid
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+)
 from app.main import app
 from fastapi.testclient import TestClient
 
@@ -99,7 +101,11 @@ def test_create_order_invalid_amount():
     user_id = user_resp.json()["id"]
     response = client.post(
         "/api/v1/orders/",
-        json={"user_id": user_id, "product_name": unique_product(), "amount": -5},
+        json={
+            "user_id": user_id,
+            "product_name": unique_product(),
+            "amount": -5,
+        },
         headers=headers,
     )
     assert response.status_code == 422
@@ -108,7 +114,11 @@ def test_create_order_invalid_amount():
 def test_create_order_nonexistent_user():
     response = client.post(
         "/api/v1/orders/",
-        json={"user_id": 9999999, "product_name": unique_product(), "amount": 10.5},
+        json={
+            "user_id": 9999999,
+            "product_name": unique_product(),
+            "amount": 10.5,
+        },
         headers=headers,
     )
     assert response.status_code == 404

@@ -9,7 +9,9 @@ import os
 import sys
 import uuid
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+)
 from app.main import app
 from fastapi.testclient import TestClient
 
@@ -37,7 +39,9 @@ def test_create_stock():
 
 def test_create_stock_duplicate_product():
     product = unique_product()
-    print(f"[TEST] test_create_stock_duplicate_product: product_name={product}")
+    print(
+        f"[TEST] test_create_stock_duplicate_product: product_name={product}"
+    )
     client.post(
         "/api/v1/stocks/",
         json={"product_name": product, "quantity": 5},
@@ -50,12 +54,16 @@ def test_create_stock_duplicate_product():
     )
     print(f"[DEBUG] Response: {response.status_code}, {response.text}")
     assert response.status_code == 400
-    assert "already exists" in response.text or "zaten kayıtlı" in response.text
+    assert (
+        "already exists" in response.text or "zaten kayıtlı" in response.text
+    )
 
 
 def test_create_stock_negative_quantity():
     product = unique_product()
-    print(f"[TEST] test_create_stock_negative_quantity: product_name={product}")
+    print(
+        f"[TEST] test_create_stock_negative_quantity: product_name={product}"
+    )
     response = client.post(
         "/api/v1/stocks/",
         json={"product_name": product, "quantity": -1},
@@ -68,7 +76,9 @@ def test_create_stock_negative_quantity():
 def test_create_stock_empty_name():
     print("[TEST] test_create_stock_empty_name")
     response = client.post(
-        "/api/v1/stocks/", json={"product_name": "", "quantity": 5}, headers=headers
+        "/api/v1/stocks/",
+        json={"product_name": "", "quantity": 5},
+        headers=headers,
     )
     print(f"[DEBUG] Response: {response.status_code}, {response.text}")
     assert response.status_code == 422
@@ -143,7 +153,9 @@ def test_update_stock_duplicate_product():
     )
     id2 = resp2.json()["id"]
     response = client.put(
-        f"/api/v1/stocks/{id2}", json={"product_name": product1}, headers=headers
+        f"/api/v1/stocks/{id2}",
+        json={"product_name": product1},
+        headers=headers,
     )
     print(f"[DEBUG] Response: {response.status_code}, {response.text}")
     assert response.status_code == 400

@@ -15,11 +15,6 @@ def mock_client(client):
     """Mock mode'da test client."""
     # Mock environment'ı set et
     with patch.dict(os.environ, {"USE_MOCK": "true"}):
-        # Settings'i yeniden yükle
-        from ..core.settings import Settings
-
-        test_settings = Settings()
-
         # App'e mock router'ını ekle
         from ..main import app
         from ..mock_routes import mock_router
@@ -162,7 +157,9 @@ class TestMockStocks:
 
         # Güncelle
         update_data = {"quantity": 200}
-        response = mock_client.put(f"/mock/stocks/{stock_id}", json=update_data)
+        response = mock_client.put(
+            f"/mock/stocks/{stock_id}", json=update_data
+        )
         assert response.status_code == 200
         updated_stock = response.json()
         assert updated_stock["quantity"] == 200
@@ -230,7 +227,9 @@ class TestMockOrders:
 
         # Güncelle
         update_data = {"status": "completed"}
-        response = mock_client.put(f"/mock/orders/{order_id}", json=update_data)
+        response = mock_client.put(
+            f"/mock/orders/{order_id}", json=update_data
+        )
         assert response.status_code == 200
         updated_order = response.json()
         assert updated_order["status"] == "completed"
@@ -313,3 +312,12 @@ class TestMockServiceFunctionality:
         final_response = mock_client.get("/mock/users")
         final_count = len(final_response.json())
         assert final_count == initial_count + 1
+
+    def test_mock_router_included_when_enabled(self, client):
+        """USE_MOCK=true olduğunda mock router dahil edilmeli."""
+        # Mock router'ın dahil edildiğini kontrol et
+        response = client.get("/")
+        assert response.status_code == 200
+        data = response.json()
+        assert "mock_mode" in data
+        assert data["mock_mode"]

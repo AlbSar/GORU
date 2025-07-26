@@ -9,7 +9,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from .. import models
 from ..database import Base, get_db
 from ..main import app
 
@@ -21,7 +20,9 @@ engine = create_engine(
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
 )
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+TestingSessionLocal = sessionmaker(
+    autocommit=False, autoflush=False, bind=engine
+)
 
 
 def override_get_db():
@@ -87,7 +88,12 @@ def test_order_data():
         "total_amount": 150.75,
         "status": "pending",
         "order_items": [
-            {"product_id": 1, "quantity": 2, "unit_price": 50.25, "total_price": 100.50}
+            {
+                "product_id": 1,
+                "quantity": 2,
+                "unit_price": 50.25,
+                "total_price": 100.50,
+            }
         ],
     }
 
@@ -109,7 +115,9 @@ def create_test_user(client, auth_headers):
         "is_active": True,
         "password": "test123",
     }
-    response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
+    response = client.post(
+        "/api/v1/users/", json=user_data, headers=auth_headers
+    )
     if response.status_code == 201:
         return response.json()["id"]
     return None
@@ -124,7 +132,9 @@ def create_test_stock(client, auth_headers):
         "unit_price": 15.99,
         "supplier": "Fixture Supplier",
     }
-    response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
+    response = client.post(
+        "/api/v1/stocks/", json=stock_data, headers=auth_headers
+    )
     if response.status_code == 201:
         return response.json()["id"]
     return None
@@ -133,8 +143,13 @@ def create_test_stock(client, auth_headers):
 def pytest_configure(config):
     """Pytest konfigürasyonu."""
     config.addinivalue_line(
-        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+        "markers",
+        "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     )
-    config.addinivalue_line("markers", "integration: marks tests as integration tests")
+    config.addinivalue_line(
+        "markers", "integration: marks tests as integration tests"
+    )
     config.addinivalue_line("markers", "unit: marks tests as unit tests")
-    config.addinivalue_line("markers", "auth: marks tests that require authentication")
+    config.addinivalue_line(
+        "markers", "auth: marks tests that require authentication"
+    )

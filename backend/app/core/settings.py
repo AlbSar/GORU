@@ -19,7 +19,9 @@ class Settings(BaseSettings):
 
     # Database Configuration
     DATABASE_URL: str = "postgresql://goru:goru@localhost:5432/goru_db"
-    TEST_DATABASE_URL: str = "postgresql://goru:goru@localhost:5432/goru_test_db"
+    TEST_DATABASE_URL: str = (
+        "postgresql://goru:goru@localhost:5432/goru_test_db"
+    )
 
     # Application Configuration
     DEBUG: bool = True

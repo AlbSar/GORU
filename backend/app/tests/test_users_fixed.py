@@ -5,7 +5,6 @@ CRUD işlemleri ve edge case'leri test eder.
 
 import uuid
 
-import pytest
 
 
 class TestUsersWithAuth:
@@ -20,7 +19,9 @@ class TestUsersWithAuth:
             "is_active": True,
             "password": "test123",
         }
-        response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
+        response = client.post(
+            "/api/v1/users/", json=user_data, headers=auth_headers
+        )
         assert response.status_code == 201
         data = response.json()
         assert data["name"] == user_data["name"]
@@ -80,7 +81,9 @@ class TestUsersWithAuth:
         assert delete_response.status_code == 204
 
         # Silindiğini kontrol et
-        get_response = client.get(f"/api/v1/users/{user_id}", headers=auth_headers)
+        get_response = client.get(
+            f"/api/v1/users/{user_id}", headers=auth_headers
+        )
         assert get_response.status_code == 404
 
     def test_create_user_duplicate_email(self, client, auth_headers):
@@ -95,12 +98,16 @@ class TestUsersWithAuth:
         }
 
         # İlk kullanıcıyı oluştur
-        response1 = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
+        response1 = client.post(
+            "/api/v1/users/", json=user_data, headers=auth_headers
+        )
         assert response1.status_code == 201
 
         # Aynı e-posta ile ikinci kullanıcıyı oluşturmaya çalış
         user_data["name"] = "Second User"
-        response2 = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
+        response2 = client.post(
+            "/api/v1/users/", json=user_data, headers=auth_headers
+        )
         assert response2.status_code == 400  # Duplicate e-posta hatası
 
 
@@ -116,7 +123,9 @@ class TestUsersValidation:
             "is_active": True,
             "password": "test123",
         }
-        response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
+        response = client.post(
+            "/api/v1/users/", json=user_data, headers=auth_headers
+        )
         assert response.status_code == 422
 
     def test_create_user_missing_fields(self, client, auth_headers):
@@ -125,7 +134,9 @@ class TestUsersValidation:
             "name": "Test User"
             # email ve diğer gerekli alanlar eksik
         }
-        response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
+        response = client.post(
+            "/api/v1/users/", json=user_data, headers=auth_headers
+        )
         assert response.status_code == 422
 
     def test_get_nonexistent_user(self, client, auth_headers):

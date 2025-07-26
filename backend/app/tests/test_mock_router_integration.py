@@ -36,7 +36,7 @@ def create_test_app(use_mock: bool = False):
 
     app = FastAPI(
         title=settings.PROJECT_NAME,
-        description=f"""
+        description="""
         GORU ERP Backend API
         
         ## Mock Mode
@@ -89,7 +89,9 @@ def create_test_app(use_mock: bool = False):
             "version": "1.0.0",
             "mock_mode": settings.USE_MOCK,
             "api_prefix": settings.API_V1_STR,
-            "mock_prefix": settings.MOCK_API_PREFIX if settings.USE_MOCK else None,
+            "mock_prefix": (
+                settings.MOCK_API_PREFIX if settings.USE_MOCK else None
+            ),
             "environment": settings.APP_ENV,
             "debug": settings.DEBUG,
         }
@@ -136,10 +138,10 @@ class TestMockRouterActivation:
         response = mock_enabled_client.get("/")
         assert response.status_code == 200
         data = response.json()
-
+        
         # Mock mode bilgileri kontrol et
         assert "mock_mode" in data
-        assert data["mock_mode"] == True
+        assert data["mock_mode"]
         assert "mock_prefix" in data
         assert data["mock_prefix"] == "/mock"
 
@@ -148,11 +150,11 @@ class TestMockRouterActivation:
         # Mock endpoint erişilemez olmalı
         response = mock_disabled_client.get("/mock/users")
         assert response.status_code == 404
-
+        
         # Root endpoint'te mock mode false olmalı
         response = mock_disabled_client.get("/")
         data = response.json()
-        assert data["mock_mode"] == False
+        assert not data["mock_mode"]
         assert data["mock_prefix"] is None
 
     def test_mock_users_endpoint_accessible(self, mock_enabled_client):
@@ -207,7 +209,9 @@ class TestMockEndpointsCRUD:
             "is_active": True,
             "password": "mock123",
         }
-        create_response = mock_enabled_client.post("/mock/users/", json=user_data)
+        create_response = mock_enabled_client.post(
+            "/mock/users/", json=user_data
+        )
         assert create_response.status_code == 201
         created_user = create_response.json()
         user_id = created_user["id"]
@@ -228,7 +232,9 @@ class TestMockEndpointsCRUD:
             "unit_price": 29.99,
             "supplier": "Mock Supplier",
         }
-        create_response = mock_enabled_client.post("/mock/stocks/", json=stock_data)
+        create_response = mock_enabled_client.post(
+            "/mock/stocks/", json=stock_data
+        )
         assert create_response.status_code == 201
         created_stock = create_response.json()
         stock_id = created_stock["id"]
@@ -259,7 +265,9 @@ class TestMockEndpointsCRUD:
                 }
             ],
         }
-        create_response = mock_enabled_client.post("/mock/orders/", json=order_data)
+        create_response = mock_enabled_client.post(
+            "/mock/orders/", json=order_data
+        )
         assert create_response.status_code == 201
         created_order = create_response.json()
         order_id = created_order["id"]
@@ -274,7 +282,9 @@ class TestMockEndpointsCRUD:
         assert updated_order["status"] == "shipped"
 
         # DELETE
-        delete_response = mock_enabled_client.delete(f"/mock/orders/{order_id}")
+        delete_response = mock_enabled_client.delete(
+            f"/mock/orders/{order_id}"
+        )
         assert delete_response.status_code == 204
 
         # VERIFY DELETION
@@ -300,7 +310,9 @@ class TestMockEndpointsCRUD:
             "unit_price": 25.99,
             "supplier": "Test",
         }
-        response = mock_enabled_client.post("/mock/stocks/", json=invalid_stock)
+        response = mock_enabled_client.post(
+            "/mock/stocks/", json=invalid_stock
+        )
         # Validation hatası olabilir veya başarılı olabilir (mock service'e bağlı)
         assert response.status_code in [422, 201]
 
@@ -332,7 +344,9 @@ class TestMockVsRealEndpoints:
         assert mock_response.status_code == 200
 
         # Real endpoint (auth gerektirir)
-        real_response = mock_enabled_client.get("/api/v1/users/", headers=auth_headers)
+        real_response = mock_enabled_client.get(
+            "/api/v1/users/", headers=auth_headers
+        )
         # Auth header'ı varsa 200, yoksa 401/403
         assert real_response.status_code in [200, 401, 403]
 
@@ -419,24 +433,23 @@ class TestEnvironmentToggling:
         """Environment variable öncelik sırası."""
         # Default false
         from ..core.settings import Settings
-
         default_settings = Settings()
-        assert hasattr(default_settings, "USE_MOCK")
-
+        assert hasattr(default_settings, 'USE_MOCK')
+        
         # Environment override
-        with patch.dict(os.environ, {"USE_MOCK": "true"}):
+        with patch.dict(os.environ, {'USE_MOCK': 'true'}):
             env_settings = Settings()
-            assert env_settings.USE_MOCK == True
-
-        with patch.dict(os.environ, {"USE_MOCK": "false"}):
+            assert env_settings.USE_MOCK
+            
+        with patch.dict(os.environ, {'USE_MOCK': 'false'}):
             env_settings = Settings()
-            assert env_settings.USE_MOCK == False
+            assert not env_settings.USE_MOCK
 
-    @patch.dict(os.environ, {"USE_MOCK": "invalid_value"})
+    @patch.dict(os.environ, {'USE_MOCK': 'invalid_value'})
     def test_invalid_environment_value_handling(self):
         """Geçersiz environment value handling."""
         from ..core.settings import Settings
-
+        
         # Pydantic boolean parsing
         try:
             settings = Settings()
@@ -449,43 +462,20 @@ class TestEnvironmentToggling:
     def test_boolean_parsing_variations(self):
         """Farklı boolean değer formatları test edilmeli."""
         from ..core.settings import Settings
-
+        
         # True değerleri
-        true_values = [
-            "true",
-            "True",
-            "TRUE",
-            "1",
-            "yes",
-            "Yes",
-            "YES",
-            "on",
-            "On",
-            "ON",
-        ]
+        true_values = ['true', 'True', 'TRUE', '1', 'yes', 'Yes', 'YES', 'on', 'On', 'ON']
         for value in true_values:
-            with patch.dict(os.environ, {"USE_MOCK": value}):
+            with patch.dict(os.environ, {'USE_MOCK': value}):
                 settings = Settings()
-                assert settings.USE_MOCK == True
-
+                assert settings.USE_MOCK
+        
         # False değerleri
-        false_values = [
-            "false",
-            "False",
-            "FALSE",
-            "0",
-            "no",
-            "No",
-            "NO",
-            "off",
-            "Off",
-            "OFF",
-            "",
-        ]
+        false_values = ['false', 'False', 'FALSE', '0', 'no', 'No', 'NO', 'off', 'Off', 'OFF', '']
         for value in false_values:
-            with patch.dict(os.environ, {"USE_MOCK": value}):
+            with patch.dict(os.environ, {'USE_MOCK': value}):
                 settings = Settings()
-                assert settings.USE_MOCK == False
+                assert not settings.USE_MOCK
 
 
 class TestSwaggerUIDocumentation:
@@ -513,7 +503,9 @@ class TestSwaggerUIDocumentation:
         assert "/mock/orders" in paths
         assert "/mock/orders/{order_id}" in paths
 
-    def test_mock_endpoints_not_in_swagger_when_disabled(self, mock_disabled_client):
+    def test_mock_endpoints_not_in_swagger_when_disabled(
+        self, mock_disabled_client
+    ):
         """Mock endpoint'ler USE_MOCK=false ise Swagger'da görünmemeli."""
         # OpenAPI schema'sını al
         response = mock_disabled_client.get("/api/v1/openapi.json")
@@ -578,7 +570,10 @@ class TestErrorHandling:
 
         for invalid_id in invalid_ids:
             response = mock_enabled_client.get(f"/mock/users/{invalid_id}")
-            assert response.status_code in [404, 422]  # 422 validation error olabilir
+            assert response.status_code in [
+                404,
+                422,
+            ]  # 422 validation error olabilir
 
     def test_mock_router_import_error_handling(self):
         """Mock router import hatası handling."""

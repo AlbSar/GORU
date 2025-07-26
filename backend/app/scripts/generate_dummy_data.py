@@ -3,7 +3,6 @@ Otomatik sahte veri üretim scripti.
 Faker kullanarak test ve geliştirme ortamı için sahte veriler oluşturur.
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -11,13 +10,12 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 import random
-from datetime import datetime, timedelta
 
 from faker import Faker
 from sqlalchemy.orm import Session
 
 from .. import models
-from ..database import SessionLocal, engine
+from ..database import SessionLocal
 
 fake = Faker("tr_TR")
 
@@ -64,7 +62,9 @@ def create_dummy_stocks(db: Session, count: int = 100):
     stocks = []
     for i in range(count):
         category = random.choice(product_categories)
-        product_name = f"{fake.company()} {category} {fake.color_name()} {fake.word()}"
+        product_name = (
+            f"{fake.company()} {category} {fake.color_name()} {fake.word()}"
+        )
 
         stock = models.Stock(
             product_name=product_name,
@@ -80,7 +80,9 @@ def create_dummy_stocks(db: Session, count: int = 100):
     return stocks
 
 
-def create_dummy_orders(db: Session, users: list, stocks: list, count: int = 200):
+def create_dummy_orders(
+    db: Session, users: list, stocks: list, count: int = 200
+):
     """Sahte sipariş verileri oluşturur."""
     print(f"Creating {count} dummy orders...")
 
@@ -92,7 +94,9 @@ def create_dummy_orders(db: Session, users: list, stocks: list, count: int = 200
         order = models.Order(
             user_id=user.id,
             total_amount=0,  # Hesaplanacak
-            status=random.choice(["pending", "completed", "cancelled", "processing"]),
+            status=random.choice(
+                ["pending", "completed", "cancelled", "processing"]
+            ),
         )
 
         # Order items oluştur
@@ -195,7 +199,7 @@ def generate_all_dummy_data():
         orders = create_dummy_orders(db, users, stocks, count=200)
 
         print("\n🎉 All dummy data generated successfully!")
-        print(f"📊 Summary:")
+        print("📊 Summary:")
         print(f"   - Users: {len(users)}")
         print(f"   - Stocks: {len(stocks)}")
         print(f"   - Products: {len(products)}")

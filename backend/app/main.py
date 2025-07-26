@@ -45,7 +45,11 @@ if settings.USE_MOCK:
         from .mock_routes import mock_router
 
         app.include_router(mock_router)
-        print("Mock router aktif: {} prefix'i ile".format(settings.MOCK_API_PREFIX))
+        print(
+            "Mock router aktif: {} prefix'i ile".format(
+                settings.MOCK_API_PREFIX
+            )
+        )
     except ImportError as e:
         print("Mock router import hatası: {}".format(e))
     except Exception as e:

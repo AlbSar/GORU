@@ -6,7 +6,7 @@ Bu modül sadece USE_MOCK environment variable true olduğunda aktif olur.
 Mock endpoint'ler gerçek veritabanı yerine in-memory data kullanır.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, HTTPException, Path, Query, status
 
@@ -53,7 +53,9 @@ async def get_mock_users(
     summary="ID'ye göre mock kullanıcı getir",
     description="Belirtilen ID'ye sahip mock kullanıcıyı döner.",
 )
-async def get_mock_user(user_id: int = Path(..., gt=0, description="Kullanıcı ID'si")):
+async def get_mock_user(
+    user_id: int = Path(..., gt=0, description="Kullanıcı ID'si")
+):
     """ID'ye göre mock kullanıcı döner."""
     user = MockUserService.get_by_id(user_id)
     if not user:
@@ -142,7 +144,9 @@ async def get_mock_orders(
     summary="ID'ye göre mock sipariş getir",
     description="Belirtilen ID'ye sahip mock siparişi döner.",
 )
-async def get_mock_order(order_id: int = Path(..., gt=0, description="Sipariş ID'si")):
+async def get_mock_order(
+    order_id: int = Path(..., gt=0, description="Sipariş ID'si")
+):
     """ID'ye göre mock sipariş döner."""
     order = MockOrderService.get_by_id(order_id)
     if not order:
@@ -231,7 +235,9 @@ async def get_mock_stocks(
     summary="ID'ye göre mock stok getir",
     description="Belirtilen ID'ye sahip mock stoku döner.",
 )
-async def get_mock_stock(stock_id: int = Path(..., gt=0, description="Stok ID'si")):
+async def get_mock_stock(
+    stock_id: int = Path(..., gt=0, description="Stok ID'si")
+):
     """ID'ye göre mock stok döner."""
     stock = MockStockService.get_by_id(stock_id)
     if not stock:
@@ -280,7 +286,9 @@ async def update_mock_stock(
     summary="Mock stok sil",
     description="Belirtilen ID'ye sahip mock stoku siler.",
 )
-async def delete_mock_stock(stock_id: int = Path(..., gt=0, description="Stok ID'si")):
+async def delete_mock_stock(
+    stock_id: int = Path(..., gt=0, description="Stok ID'si")
+):
     """Mock stok siler."""
     success = MockStockService.delete(stock_id)
     if not success:

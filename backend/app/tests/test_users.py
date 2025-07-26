@@ -2,7 +2,6 @@
 User endpoint testleri.
 """
 
-import pytest
 
 
 def unique_email():

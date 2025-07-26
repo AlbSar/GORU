@@ -62,7 +62,9 @@ async def create_user(
     EN: Creates a new user. Email must be unique.
     """
     print(f"[DEBUG] Gelen kullanıcı verisi: {user.model_dump()}")
-    existing = db.query(models.User).filter(models.User.email == user.email).first()
+    existing = (
+        db.query(models.User).filter(models.User.email == user.email).first()
+    )
     if existing:
         print(f"[DEBUG] E-posta zaten kayıtlı: {user.email}")
         raise HTTPException(
@@ -111,13 +113,17 @@ async def list_users(
     response_model=schemas.UserRead,
     summary="Kullanıcı detay / User detail",
     responses={
-        200: {"description": "Kullanıcı ve siparişleri / User and their orders."},
+        200: {
+            "description": "Kullanıcı ve siparişleri / User and their orders."
+        },
         404: {"description": "Kullanıcı bulunamadı / User not found."},
         401: {"description": "Yetkisiz / Unauthorized"},
     },
 )
 async def get_user(
-    user_id: int, db: Session = Depends(get_db), user_auth=Depends(get_current_user)
+    user_id: int,
+    db: Session = Depends(get_db),
+    user_auth=Depends(get_current_user),
 ):
     """
     TR: Kullanıcıyı ve siparişlerini getirir.
@@ -159,7 +165,9 @@ async def update_user(
     if "password" in update_data:
         from .auth import hash_password
 
-        update_data["password_hash"] = hash_password(update_data.pop("password"))
+        update_data["password_hash"] = hash_password(
+            update_data.pop("password")
+        )
     for key, value in update_data.items():
         setattr(db_user, key, value)
     db.commit()
@@ -178,7 +186,9 @@ async def update_user(
     },
 )
 async def delete_user(
-    user_id: int, db: Session = Depends(get_db), user_auth=Depends(get_current_user)
+    user_id: int,
+    db: Session = Depends(get_db),
+    user_auth=Depends(get_current_user),
 ):
     """
     TR: Kullanıcıyı siler.
@@ -223,7 +233,9 @@ async def create_order(
     # Testler product_name ve amount ile gönderiyor, bunları order_items'e dönüştürelim
     if "product_name" in order and "amount" in order:
         if order["amount"] < 0:
-            raise HTTPException(status_code=422, detail="Amount cannot be negative")
+            raise HTTPException(
+                status_code=422, detail="Amount cannot be negative"
+            )
         product = (
             db.query(models.Product)
             .filter(models.Product.name == order["product_name"])
@@ -253,7 +265,11 @@ async def create_order(
         )
     else:
         order_obj = schemas.OrderCreate(**order)
-    user = db.query(models.User).filter(models.User.id == order_obj.user_id).first()
+    user = (
+        db.query(models.User)
+        .filter(models.User.id == order_obj.user_id)
+        .first()
+    )
     if not user:
         raise HTTPException(
             status_code=404, detail="Kullanıcı bulunamadı. / User not found."
@@ -281,7 +297,9 @@ async def create_order(
     db.refresh(db_order)
     result = db_order.__dict__.copy()
     # product_name'i response'a ekle
-    if order_obj.order_items and hasattr(order_obj.order_items[0], "product_id"):
+    if order_obj.order_items and hasattr(
+        order_obj.order_items[0], "product_id"
+    ):
         product = (
             db.query(models.Product)
             .filter(models.Product.id == order_obj.order_items[0].product_id)
@@ -322,7 +340,9 @@ async def list_orders(
     },
 )
 async def get_order(
-    order_id: int, db: Session = Depends(get_db), user_auth=Depends(get_current_user)
+    order_id: int,
+    db: Session = Depends(get_db),
+    user_auth=Depends(get_current_user),
 ):
     """
     TR: Sipariş detayını getirir.
@@ -353,14 +373,18 @@ async def update_order(
     db: Session = Depends(get_db),
     user_auth=Depends(get_current_user),
 ):
-    db_order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    db_order = (
+        db.query(models.Order).filter(models.Order.id == order_id).first()
+    )
     if not db_order:
         raise HTTPException(
             status_code=404, detail="Sipariş bulunamadı. / Order not found."
         )
     if "product_name" in order and "amount" in order:
         if order["amount"] < 0:
-            raise HTTPException(status_code=422, detail="Amount cannot be negative")
+            raise HTTPException(
+                status_code=422, detail="Amount cannot be negative"
+            )
         product = (
             db.query(models.Product)
             .filter(models.Product.name == order["product_name"])
@@ -414,13 +438,17 @@ async def update_order(
     },
 )
 async def delete_order(
-    order_id: int, db: Session = Depends(get_db), user_auth=Depends(get_current_user)
+    order_id: int,
+    db: Session = Depends(get_db),
+    user_auth=Depends(get_current_user),
 ):
     """
     TR: Siparişi siler.
     EN: Deletes an order.
     """
-    db_order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    db_order = (
+        db.query(models.Order).filter(models.Order.id == order_id).first()
+    )
     if not db_order:
         raise HTTPException(
             status_code=404, detail="Sipariş bulunamadı. / Order not found."
@@ -455,7 +483,11 @@ def create_stock(
     TR: Yeni stok kaydı ekler. Ürün adı benzersiz olmalıdır.
     EN: Creates a new stock record. Product name must be unique.
     """
-    if db.query(Stock).filter(Stock.product_name == stock.product_name).first():
+    if (
+        db.query(Stock)
+        .filter(Stock.product_name == stock.product_name)
+        .first()
+    ):
         raise HTTPException(
             status_code=400,
             detail="Ürün adı zaten kayıtlı / Product name already exists",
@@ -476,7 +508,9 @@ def create_stock(
         401: {"description": "Yetkisiz / Unauthorized"},
     },
 )
-def list_stocks(db: Session = Depends(get_db), user_auth=Depends(get_current_user)):
+def list_stocks(
+    db: Session = Depends(get_db), user_auth=Depends(get_current_user)
+):
     """
     TR: Tüm stokları listeler.
     EN: Lists all stocks.
@@ -503,7 +537,9 @@ def get_stock(
     """
     stock = db.query(Stock).filter(Stock.id == id).first()
     if not stock:
-        raise HTTPException(status_code=404, detail="Stok bulunamadı / Stock not found")
+        raise HTTPException(
+            status_code=404, detail="Stok bulunamadı / Stock not found"
+        )
     return stock
 
 
@@ -532,7 +568,9 @@ def update_stock(
     """
     db_stock = db.query(Stock).filter(Stock.id == id).first()
     if not db_stock:
-        raise HTTPException(status_code=404, detail="Stok bulunamadı / Stock not found")
+        raise HTTPException(
+            status_code=404, detail="Stok bulunamadı / Stock not found"
+        )
     if (
         stock.product_name
         and db.query(Stock)
@@ -569,7 +607,9 @@ def delete_stock(
     """
     db_stock = db.query(Stock).filter(Stock.id == id).first()
     if not db_stock:
-        raise HTTPException(status_code=404, detail="Stok bulunamadı / Stock not found")
+        raise HTTPException(
+            status_code=404, detail="Stok bulunamadı / Stock not found"
+        )
     db.delete(db_stock)
     db.commit()
     return

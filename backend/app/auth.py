@@ -8,7 +8,9 @@ security = HTTPBearer()
 VALID_TOKEN = "secret-token"
 
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+):
     if credentials.credentials != VALID_TOKEN:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

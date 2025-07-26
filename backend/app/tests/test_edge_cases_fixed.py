@@ -6,7 +6,6 @@ Beklenmedik durumlar ve hata yönetimini auth token ile test eder.
 import uuid
 
 import pytest
-from fastapi.testclient import TestClient
 
 
 @pytest.mark.auth
@@ -197,7 +196,9 @@ class TestIntegrationWithAuth:
         user_id = create_response.json()["id"]
 
         # READ
-        read_response = client.get(f"/api/v1/users/{user_id}", headers=auth_headers)
+        read_response = client.get(
+            f"/api/v1/users/{user_id}", headers=auth_headers
+        )
         assert read_response.status_code == 200
         assert read_response.json()["name"] == user_data["name"]
 
@@ -237,14 +238,20 @@ class TestIntegrationWithAuth:
         stock_id = create_response.json()["id"]
 
         # READ
-        read_response = client.get(f"/api/v1/stocks/{stock_id}", headers=auth_headers)
+        read_response = client.get(
+            f"/api/v1/stocks/{stock_id}", headers=auth_headers
+        )
         assert read_response.status_code == 200
-        assert read_response.json()["product_name"] == stock_data["product_name"]
+        assert (
+            read_response.json()["product_name"] == stock_data["product_name"]
+        )
 
         # UPDATE
         update_data = {"quantity": 150}
         update_response = client.put(
-            f"/api/v1/stocks/{stock_id}", json=update_data, headers=auth_headers
+            f"/api/v1/stocks/{stock_id}",
+            json=update_data,
+            headers=auth_headers,
         )
         assert update_response.status_code == 200
         assert update_response.json()["quantity"] == 150
