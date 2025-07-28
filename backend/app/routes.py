@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from . import models, schemas
 from .auth import get_current_user
-from .database import Base, SessionLocal, engine
+from .database import Base, SessionLocal, get_engine
 from .models import Stock
 from .schemas import StockCreate, StockRead, StockUpdate
 
@@ -31,8 +31,6 @@ def create_tables_if_needed():
         and os.getenv("TESTING") != "true"
     ):
         try:
-            from .database import get_engine
-
             engine = get_engine()
             Base.metadata.create_all(bind=engine)
             print("Tüm tablolar güncel modellerle oluşturuldu.")
