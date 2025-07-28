@@ -124,8 +124,7 @@ class DataAnonymizer:
 
     @staticmethod
     def anonymize_dataset(
-        data_list: Optional[List[Dict[str, Any]]], 
-        fields_to_anonymize: List[str]
+        data_list: Optional[List[Dict[str, Any]]], fields_to_anonymize: List[str]
     ) -> List[Dict[str, Any]]:
         """Veri setindeki belirtilen alanları anonimleştirir."""
         if data_list is None:

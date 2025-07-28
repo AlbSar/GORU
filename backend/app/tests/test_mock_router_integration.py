@@ -18,9 +18,10 @@ def create_test_app():
     # Environment'ı temizle
     if "USE_MOCK" in os.environ:
         del os.environ["USE_MOCK"]
-    
+
     # Yeni app oluştur
     from ..main import app
+
     return app
 
 
@@ -30,18 +31,19 @@ def mock_enabled_client():
     with patch.dict(os.environ, {"USE_MOCK": "true"}):
         # Settings'i yeniden yükle
         from ..core.settings import settings
+
         settings.USE_MOCK = True
-        
+
         # Yeni app instance oluştur
         from fastapi import FastAPI
         from fastapi.middleware.cors import CORSMiddleware
-        
+
         test_app = FastAPI(
             title="Test GORU API",
             description="Test API with mock endpoints",
             version="1.0.0",
         )
-        
+
         # CORS middleware ekle
         test_app.add_middleware(
             CORSMiddleware,
@@ -50,11 +52,12 @@ def mock_enabled_client():
             allow_methods=["*"],
             allow_headers=["*"],
         )
-        
+
         # Ana router'ı dahil et
         from ..routes import router
+
         test_app.include_router(router, prefix="/api/v1")
-        
+
         # Root endpoint ekle
         @test_app.get("/")
         def read_root():
@@ -67,15 +70,16 @@ def mock_enabled_client():
                 "environment": "test",
                 "debug": True,
             }
-        
+
         # Mock router'ı dahil et
         try:
             from ..mock_routes import mock_router
+
             test_app.include_router(mock_router)
             print("✅ Mock router test app'e dahil edildi")
         except Exception as e:
             print(f"❌ Mock router dahil etme hatası: {e}")
-        
+
         client = TestClient(test_app)
         yield client
 
@@ -86,18 +90,19 @@ def mock_disabled_client():
     with patch.dict(os.environ, {"USE_MOCK": "false"}):
         # Settings'i yeniden yükle
         from ..core.settings import settings
+
         settings.USE_MOCK = False
-        
+
         # Yeni app instance oluştur
         from fastapi import FastAPI
         from fastapi.middleware.cors import CORSMiddleware
-        
+
         test_app = FastAPI(
             title="Test GORU API",
             description="Test API without mock endpoints",
             version="1.0.0",
         )
-        
+
         # CORS middleware ekle
         test_app.add_middleware(
             CORSMiddleware,
@@ -106,11 +111,12 @@ def mock_disabled_client():
             allow_methods=["*"],
             allow_headers=["*"],
         )
-        
+
         # Sadece ana router'ı dahil et
         from ..routes import router
+
         test_app.include_router(router, prefix="/api/v1")
-        
+
         # Root endpoint ekle
         @test_app.get("/")
         def read_root():
@@ -123,7 +129,7 @@ def mock_disabled_client():
                 "environment": "test",
                 "debug": True,
             }
-        
+
         client = TestClient(test_app)
         yield client
 

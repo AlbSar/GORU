@@ -1,9 +1,10 @@
+from datetime import datetime, timedelta
+from typing import Any, Dict, Optional
+
 import bcrypt
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from typing import Optional, Dict, Any
-import jwt
-from datetime import datetime, timedelta
 
 # HTTPBearer'ı auto_error=False ile yapılandır
 security = HTTPBearer(auto_error=False)
@@ -20,7 +21,7 @@ VALID_TOKEN = "secret-token"
 USER_ROLES = {
     "admin": ["read", "write", "delete", "admin"],
     "user": ["read", "write"],
-    "viewer": ["read"]
+    "viewer": ["read"],
 }
 
 
@@ -72,9 +73,9 @@ def get_current_user(
                 detail="Missing authentication token",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
+
         token = credentials.credentials
-        
+
         # Boş token kontrolü
         if not token or token.strip() == "":
             raise HTTPException(
@@ -82,15 +83,15 @@ def get_current_user(
                 detail="Empty authentication token",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
+
         # Önce sabit token kontrolü (test için)
         if token == VALID_TOKEN:
             return {
                 "user": "authorized",
                 "role": "admin",
-                "permissions": ["read", "write", "delete"]
+                "permissions": ["read", "write", "delete"],
             }
-        
+
         # JWT token kontrolü
         payload = verify_token(token)
         username: str = payload.get("sub")
@@ -100,14 +101,14 @@ def get_current_user(
                 detail="Invalid token payload",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
+
         # Kullanıcı bilgilerini döndür
         return {
             "user": username,
             "role": payload.get("role", "user"),
-            "permissions": USER_ROLES.get(payload.get("role", "user"), ["read"])
+            "permissions": USER_ROLES.get(payload.get("role", "user"), ["read"]),
         }
-        
+
     except HTTPException:
         # HTTPException'ları tekrar fırlat
         raise
@@ -122,6 +123,7 @@ def get_current_user(
 
 def check_permission(required_permission: str):
     """Permission kontrolü için decorator"""
+
     def permission_checker(current_user: dict = Depends(get_current_user)):
         user_permissions = current_user.get("permissions", [])
         if required_permission not in user_permissions:
@@ -130,6 +132,7 @@ def check_permission(required_permission: str):
                 detail=f"Insufficient permissions. Required: {required_permission}",
             )
         return current_user
+
     return permission_checker
 
 

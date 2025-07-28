@@ -3,16 +3,17 @@ FastAPI uygulaması ana dosyası.
 ERP sistemi için API endpoint'lerini sağlar.
 """
 
-from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Request, status
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from pydantic import ValidationError
 import logging
+from contextlib import asynccontextmanager
 
+from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+
+from .database import Base, engine
 from .routes import router
-from .database import engine, Base
 
 # Logging konfigürasyonu
 logging.basicConfig(level=logging.INFO)
@@ -26,9 +27,9 @@ async def lifespan(app: FastAPI):
     logger.info("Uygulama başlatılıyor...")
     Base.metadata.create_all(bind=engine)
     logger.info("Veritabanı tabloları oluşturuldu.")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Uygulama kapatılıyor...")
 
@@ -37,7 +38,7 @@ app = FastAPI(
     title="GORU ERP API",
     description="ERP sistemi için RESTful API",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # CORS middleware
@@ -61,8 +62,8 @@ async def http_exception_handler(request: Request, exc: HTTPException):
             "error": True,
             "message": exc.detail,
             "status_code": exc.status_code,
-            "path": str(request.url)
-        }
+            "path": str(request.url),
+        },
     )
 
 
@@ -77,8 +78,8 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
             "message": "Validation error",
             "details": exc.errors(),
             "status_code": 422,
-            "path": str(request.url)
-        }
+            "path": str(request.url),
+        },
     )
 
 
@@ -93,8 +94,8 @@ async def integrity_exception_handler(request: Request, exc: IntegrityError):
             "message": "Database constraint violation",
             "details": str(exc),
             "status_code": 400,
-            "path": str(request.url)
-        }
+            "path": str(request.url),
+        },
     )
 
 
@@ -108,8 +109,8 @@ async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
             "error": True,
             "message": "Database error occurred",
             "status_code": 500,
-            "path": str(request.url)
-        }
+            "path": str(request.url),
+        },
     )
 
 
@@ -123,8 +124,8 @@ async def general_exception_handler(request: Request, exc: Exception):
             "error": True,
             "message": "Internal server error",
             "status_code": 500,
-            "path": str(request.url)
-        }
+            "path": str(request.url),
+        },
     )
 
 

@@ -4,19 +4,23 @@ Auth modülü için error handling testleri.
 JWT token validation ve role-based authorization kapsar.
 """
 
-from unittest.mock import patch
-from fastapi.testclient import TestClient
-import jwt
 from datetime import datetime, timedelta
+from unittest.mock import patch
+
+import jwt
+from fastapi.testclient import TestClient
+
+from ..auth import ALGORITHM, SECRET_KEY, create_access_token, verify_token
 from ..main import app
-from ..auth import SECRET_KEY, ALGORITHM, create_access_token, verify_token
 
 client = TestClient(app)
 headers = {"Authorization": "Bearer secret-token"}
 
 
 # JWT Token Factory
-def create_test_jwt(payload: dict, secret: str = SECRET_KEY, algorithm: str = ALGORITHM):
+def create_test_jwt(
+    payload: dict, secret: str = SECRET_KEY, algorithm: str = ALGORITHM
+):
     """Test için JWT token oluştur"""
     return jwt.encode(payload, secret, algorithm=algorithm)
 
@@ -36,9 +40,9 @@ def create_future_jwt(payload: dict):
 # genel hata senaryosu testleri
 class TestAuthErrorHandling:
     """Auth modülü için error handling testleri."""
-    
+
     # === 401 UNAUTHORIZED TESTS ===
-    
+
     def test_missing_token_401(self):
         """Missing token → 401"""
         response = client.get("/api/v1/users/")  # no headers
@@ -46,7 +50,7 @@ class TestAuthErrorHandling:
         data = response.json()
         assert "message" in data
         assert "Missing authentication token" in data["message"]
-    
+
     def test_invalid_token_401(self):
         """Invalid token → 401"""
         invalid_headers = {"Authorization": "Bearer invalid-token"}
@@ -54,7 +58,7 @@ class TestAuthErrorHandling:
         assert response.status_code == 401
         data = response.json()
         assert "message" in data
-    
+
     def test_malformed_token_401(self):
         """Malformed token → 401"""
         malformed_headers = {"Authorization": "InvalidFormat token"}
@@ -63,7 +67,7 @@ class TestAuthErrorHandling:
         data = response.json()
         assert "message" in data
         assert "Missing authentication token" in data["message"]
-    
+
     def test_empty_token_401(self):
         """Empty token → 401"""
         empty_headers = {"Authorization": "Bearer "}
@@ -72,7 +76,7 @@ class TestAuthErrorHandling:
         data = response.json()
         assert "message" in data
         assert "Missing authentication token" in data["message"]
-    
+
     def test_wrong_token_format_401(self):
         """Wrong token format → 401"""
         wrong_format_headers = {"Authorization": "Basic dXNlcjpwYXNz"}
@@ -81,9 +85,9 @@ class TestAuthErrorHandling:
         data = response.json()
         assert "message" in data
         assert "Missing authentication token" in data["message"]
-    
+
     # === 403 FORBIDDEN TESTS ===
-    
+
     def test_insufficient_permissions_403(self):
         """Insufficient permissions → 403"""
         # Bu test, eğer role-based authorization varsa çalışır
@@ -91,7 +95,7 @@ class TestAuthErrorHandling:
         response = client.get("/api/v1/users/99999", headers=headers)
         # Eğer user yoksa 404, yetkisizse 403, token geçersizse 401
         assert response.status_code in [401, 403, 404]
-    
+
     def test_admin_only_endpoint_403(self):
         """Admin-only endpoint → 403"""
         # Bu test, eğer admin-only endpoint'ler varsa çalışır
@@ -100,9 +104,9 @@ class TestAuthErrorHandling:
         response = client.delete("/api/v1/users/1", headers=headers)
         # Eğer user yoksa 404, yetkisizse 403, token geçersizse 401
         assert response.status_code in [401, 403, 404]
-    
+
     # === 500 INTERNAL SERVER ERROR TESTS ===
-    
+
     def test_auth_internal_error_500(self):
         """Auth with internal exception → 500"""
         # Auth handler'da exception fırlatmak için token'ı geçersiz yapıyoruz
@@ -114,7 +118,7 @@ class TestAuthErrorHandling:
             data = response.json()
             assert "error" in data
             assert data["status_code"] == 500
-    
+
     def test_auth_database_error_500(self):
         """Auth with database exception → 500"""
         # Database error test'ini düzeltiyoruz
@@ -126,9 +130,9 @@ class TestAuthErrorHandling:
             data = response.json()
             assert "error" in data
             assert data["status_code"] == 500
-    
+
     # === CROSS-MODULE AUTH TESTS ===
-    
+
     def test_users_without_auth_401(self):
         """Users endpoint without auth → 401"""
         response = client.get("/api/v1/users/")
@@ -136,7 +140,7 @@ class TestAuthErrorHandling:
         data = response.json()
         assert "message" in data
         assert "Missing authentication token" in data["message"]
-    
+
     def test_stocks_without_auth_401(self):
         """Stocks endpoint without auth → 401"""
         response = client.get("/api/v1/stocks/")
@@ -144,7 +148,7 @@ class TestAuthErrorHandling:
         data = response.json()
         assert "message" in data
         assert "Missing authentication token" in data["message"]
-    
+
     def test_orders_with_invalid_auth_401(self):
         """Orders endpoint with invalid auth → 401"""
         invalid_headers = {"Authorization": "Bearer wrong-token"}
@@ -152,7 +156,7 @@ class TestAuthErrorHandling:
         assert response.status_code == 401
         data = response.json()
         assert "message" in data
-    
+
     def test_users_with_invalid_auth_401(self):
         """Users endpoint with invalid auth → 401"""
         invalid_headers = {"Authorization": "Bearer wrong-token"}
@@ -160,7 +164,7 @@ class TestAuthErrorHandling:
         assert response.status_code == 401
         data = response.json()
         assert "message" in data
-    
+
     def test_stocks_with_invalid_auth_401(self):
         """Stocks endpoint with invalid auth → 401"""
         invalid_headers = {"Authorization": "Bearer wrong-token"}
@@ -168,9 +172,9 @@ class TestAuthErrorHandling:
         assert response.status_code == 401
         data = response.json()
         assert "message" in data
-    
+
     # === EDGE CASE TESTS ===
-    
+
     def test_very_long_token_401(self):
         """Very long token → 401"""
         long_token = "Bearer " + "a" * 10000
@@ -179,7 +183,7 @@ class TestAuthErrorHandling:
         assert response.status_code == 401
         data = response.json()
         assert "message" in data
-    
+
     def test_special_characters_in_token_401(self):
         """Special characters in token → 401"""
         special_token = "Bearer !@#$%^&*()_+-=[]{}|;':\",./<>?"
@@ -188,7 +192,7 @@ class TestAuthErrorHandling:
         assert response.status_code == 401
         data = response.json()
         assert "message" in data
-    
+
     def test_multiple_auth_headers_401(self):
         """Multiple auth headers → 401"""
         # Python dict'te aynı key birden fazla olamaz, bu yüzden
@@ -199,7 +203,7 @@ class TestAuthErrorHandling:
         assert response.status_code == 401
         data = response.json()
         assert "message" in data
-    
+
     def test_case_sensitive_auth_401(self):
         """Case sensitive auth header → 401"""
         # Case sensitive test'i düzeltiyoruz - lowercase header kullanıyoruz
@@ -210,7 +214,7 @@ class TestAuthErrorHandling:
         assert "message" in data
         # Case sensitive olduğu için "Invalid token format" döndürüyor
         assert "Invalid token format" in data["message"]
-    
+
     def test_extra_spaces_in_token_401(self):
         """Extra spaces in token → 401"""
         space_token = "Bearer   secret-token  "  # extra spaces
@@ -219,19 +223,21 @@ class TestAuthErrorHandling:
         assert response.status_code == 401
         data = response.json()
         assert "message" in data
-    
+
     # === ADDITIONAL COVERAGE TESTS ===
-    
+
     def test_jwt_token_validation(self):
         """JWT token validation test"""
         # JWT token test'i ekliyoruz
-        jwt_token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0In0.invalid"
+        jwt_token = (
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0In0.invalid"
+        )
         jwt_headers = {"Authorization": jwt_token}
         response = client.get("/api/v1/users/", headers=jwt_headers)
         assert response.status_code == 401
         data = response.json()
         assert "message" in data
-    
+
     def test_token_without_bearer_prefix(self):
         """Token without Bearer prefix → 401"""
         no_bearer_headers = {"Authorization": "secret-token"}
@@ -240,7 +246,7 @@ class TestAuthErrorHandling:
         data = response.json()
         assert "message" in data
         assert "Missing authentication token" in data["message"]
-    
+
     def test_token_with_extra_spaces_after_bearer(self):
         """Token with extra spaces after Bearer → 401"""
         extra_space_headers = {"Authorization": "Bearer  secret-token"}
@@ -248,7 +254,7 @@ class TestAuthErrorHandling:
         assert response.status_code == 401
         data = response.json()
         assert "message" in data
-    
+
     def test_token_with_only_bearer(self):
         """Token with only Bearer → 401"""
         only_bearer_headers = {"Authorization": "Bearer"}
@@ -257,7 +263,7 @@ class TestAuthErrorHandling:
         data = response.json()
         assert "message" in data
         assert "Missing authentication token" in data["message"]
-    
+
     def test_token_with_whitespace_only(self):
         """Token with whitespace only → 401"""
         whitespace_headers = {"Authorization": "Bearer   "}
@@ -271,45 +277,43 @@ class TestAuthErrorHandling:
 # Integration Testleri
 class TestAuthIntegration:
     """Auth modülü integration testleri - integration coverage"""
-    
+
     def test_create_access_token_with_expires_delta(self):
         """create_access_token with expires_delta → coverage"""
         # create_access_token coverage için
-        from ..auth import create_access_token
         from datetime import timedelta
-        
+
+
         data = {"sub": "testuser", "role": "admin"}
         expires_delta = timedelta(minutes=30)
         token = create_access_token(data, expires_delta)
-        
+
         # Token'ın geçerli olduğunu kontrol et
         assert token is not None
         assert isinstance(token, str)
         assert len(token) > 0
-    
+
     def test_create_access_token_without_expires_delta(self):
         """create_access_token without expires_delta → coverage"""
         # create_access_token coverage için (default 15 dakika)
-        from ..auth import create_access_token
-        
+
         data = {"sub": "testuser", "role": "user"}
         token = create_access_token(data)
-        
+
         # Token'ın geçerli olduğunu kontrol et
         assert token is not None
         assert isinstance(token, str)
         assert len(token) > 0
-    
+
     def test_check_permission_success(self):
         """check_permission with valid permission → 200"""
         # check_permission coverage için
-        from ..auth import check_permission
-        
+
         # Admin token ile read permission test et
         admin_headers = {"Authorization": "Bearer secret-token"}
         response = client.get("/api/v1/users/", headers=admin_headers)
         assert response.status_code == 200
-    
+
     def test_check_permission_insufficient(self):
         """check_permission with insufficient permission → 403"""
         # check_permission coverage için - yetersiz yetki
@@ -319,43 +323,42 @@ class TestAuthIntegration:
         response = client.get("/api/v1/users/", headers=user_headers)
         # 200 döner çünkü admin token'ı tüm yetkilere sahip
         assert response.status_code == 200
-    
+
     def test_hash_password_function(self):
         """hash_password function → coverage"""
         # hash_password coverage için
         from ..auth import hash_password
-        
+
         password = "testpassword123"
         hashed = hash_password(password)
-        
+
         # Hash'lenmiş şifrenin geçerli olduğunu kontrol et
         assert hashed is not None
         assert isinstance(hashed, str)
         assert hashed != password
         assert len(hashed) > len(password)
-    
+
     def test_verify_password_function(self):
         """verify_password function → coverage"""
         # verify_password coverage için
         from ..auth import hash_password, verify_password
-        
+
         password = "testpassword123"
         hashed = hash_password(password)
-        
+
         # Doğru şifre ile doğrulama
         assert verify_password(password, hashed) == True
-        
+
         # Yanlış şifre ile doğrulama
         assert verify_password("wrongpassword", hashed) == False
-    
+
     def test_verify_token_jwt_error(self):
         """verify_token with JWT error → 401"""
         # verify_token JWTError coverage için
-        from ..auth import verify_token
-        
+
         # Hatalı formatlı token ile test
         invalid_token = "invalid.jwt.token"
-        
+
         try:
             verify_token(invalid_token)
             assert False, "Should raise HTTPException"
@@ -366,35 +369,39 @@ class TestAuthIntegration:
 # JWT Token Validation Testleri - Düzeltilmiş
 class TestJWTTokenValidationFixed:
     """JWT token validation testleri - jwt coverage düzeltilmiş"""
-    
+
     def test_expired_jwt_token_401_fixed(self):
         """Süresi geçmiş JWT token → 401 (düzeltilmiş)"""
         # Süresi geçmiş JWT token oluştur
-        payload = {"sub": "testuser", "role": "user", "exp": datetime.utcnow() - timedelta(hours=1)}
+        payload = {
+            "sub": "testuser",
+            "role": "user",
+            "exp": datetime.utcnow() - timedelta(hours=1),
+        }
         token = create_test_jwt(payload)
         jwt_headers = {"Authorization": f"Bearer {token}"}
-        
+
         response = client.get("/api/v1/users/", headers=jwt_headers)
         assert response.status_code == 401
         data = response.json()
         assert "message" in data
         # JWT decode hatası olduğu için "Invalid token" döner
         assert "Invalid token" in data["message"]
-    
+
     def test_empty_payload_jwt_401_fixed(self):
         """Boş payload'lı JWT token → 401 (düzeltilmiş)"""
         # Boş payload ile JWT token oluştur
         payload = {}
         token = create_test_jwt(payload)
         jwt_headers = {"Authorization": f"Bearer {token}"}
-        
+
         response = client.get("/api/v1/users/", headers=jwt_headers)
         assert response.status_code == 401
         data = response.json()
         assert "message" in data
         # JWT decode hatası olduğu için "Invalid token" döner
         assert "Invalid token" in data["message"]
-    
+
     def test_jwt_decode_exception_500_fixed(self):
         """JWT decode exception → 500 (düzeltilmiş)"""
         # JWT decode sırasında exception fırlat
@@ -402,7 +409,7 @@ class TestJWTTokenValidationFixed:
             payload = {"sub": "testuser", "role": "user"}
             token = create_test_jwt(payload)
             jwt_headers = {"Authorization": f"Bearer {token}"}
-            
+
             response = client.get("/api/v1/users/", headers=jwt_headers)
             assert response.status_code == 500
             data = response.json()
@@ -413,66 +420,66 @@ class TestJWTTokenValidationFixed:
 # Role-based Authorization Testleri
 class TestRoleBasedAuthorization:
     """Role-based authorization testleri - permission coverage"""
-    
+
     def test_admin_role_access_200(self):
         """Admin rolü ile erişim → 200"""
         # Admin JWT token oluştur
         payload = {"sub": "admin", "role": "admin"}
         token = create_test_jwt(payload)
         jwt_headers = {"Authorization": f"Bearer {token}"}
-        
+
         response = client.get("/api/v1/users/", headers=jwt_headers)
         assert response.status_code == 200
-    
+
     def test_user_role_access_200(self):
         """User rolü ile erişim → 200"""
         # User JWT token oluştur
         payload = {"sub": "user", "role": "user"}
         token = create_test_jwt(payload)
         jwt_headers = {"Authorization": f"Bearer {token}"}
-        
+
         response = client.get("/api/v1/users/", headers=jwt_headers)
         assert response.status_code == 200
-    
+
     def test_guest_role_access_200(self):
         """Guest rolü ile erişim → 200"""
         # Guest JWT token oluştur
         payload = {"sub": "guest", "role": "viewer"}
         token = create_test_jwt(payload)
         jwt_headers = {"Authorization": f"Bearer {token}"}
-        
+
         response = client.get("/api/v1/users/", headers=jwt_headers)
         assert response.status_code == 200
-    
+
     def test_insufficient_permissions_403(self):
         """Yetersiz yetki → 403"""
         # User rolü ile admin-only endpoint'e erişmeye çalış
         payload = {"sub": "user", "role": "user"}
         token = create_test_jwt(payload)
         jwt_headers = {"Authorization": f"Bearer {token}"}
-        
+
         # Admin-only endpoint (varsayımsal)
         response = client.delete("/api/v1/users/1", headers=jwt_headers)
         # 403 veya 404 bekleriz
         assert response.status_code in [403, 404]
-    
+
     def test_no_role_token_401(self):
         """Rol olmayan token → 401"""
         # Rol olmayan JWT token oluştur
         payload = {"sub": "user"}  # role yok
         token = create_test_jwt(payload)
         jwt_headers = {"Authorization": f"Bearer {token}"}
-        
+
         response = client.get("/api/v1/users/", headers=jwt_headers)
         assert response.status_code == 200  # Default role kullanır
-    
+
     def test_invalid_role_token_401(self):
         """Geçersiz rol token → 401"""
         # Geçersiz rol ile JWT token oluştur
         payload = {"sub": "user", "role": "invalid_role"}
         token = create_test_jwt(payload)
         jwt_headers = {"Authorization": f"Bearer {token}"}
-        
+
         response = client.get("/api/v1/users/", headers=jwt_headers)
         assert response.status_code == 200  # Default role kullanır
 
@@ -480,7 +487,7 @@ class TestRoleBasedAuthorization:
 # Internal Server Error Testleri
 class TestInternalServerError:
     """Internal server error testleri - 500 coverage"""
-    
+
     def test_get_current_user_exception_500(self):
         """get_current_user exception → 500"""
         # get_current_user'da exception fırlat
@@ -490,7 +497,7 @@ class TestInternalServerError:
             data = response.json()
             assert "error" in data
             assert data["status_code"] == 500
-    
+
     def test_verify_token_exception_500(self):
         """verify_token exception → 500"""
         # verify_token'da exception fırlat
@@ -498,13 +505,13 @@ class TestInternalServerError:
             payload = {"sub": "testuser", "role": "user"}
             token = create_test_jwt(payload)
             jwt_headers = {"Authorization": f"Bearer {token}"}
-            
+
             response = client.get("/api/v1/users/", headers=jwt_headers)
             assert response.status_code == 500
             data = response.json()
             assert "error" in data
             assert data["status_code"] == 500
-    
+
     def test_database_connection_error_500(self):
         """Database connection error → 500"""
         # Database connection error simüle et
@@ -514,7 +521,7 @@ class TestInternalServerError:
             data = response.json()
             assert "error" in data
             assert data["status_code"] == 500
-    
+
     def test_dependency_injection_error_500(self):
         """Dependency injection error → 500"""
         # Dependency injection error simüle et
@@ -523,4 +530,4 @@ class TestInternalServerError:
             assert response.status_code == 500
             data = response.json()
             assert "error" in data
-            assert data["status_code"] == 500 
+            assert data["status_code"] == 500

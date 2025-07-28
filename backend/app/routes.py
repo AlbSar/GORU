@@ -4,6 +4,9 @@ ERP sistemi için kullanıcı, sipariş ve stok yönetimi CRUD işlemlerini sağ
 RESTful API standartlarına uygun endpoint'ler içerir.
 """
 
+# Database tablolarını sadece production'da oluştur
+# Test ortamında conftest.py handle eder
+import os
 import uuid
 from typing import List
 
@@ -15,11 +18,10 @@ from .auth import get_current_user
 from .database import Base, SessionLocal, engine
 from .models import Stock
 from .schemas import StockCreate, StockRead, StockUpdate
+
 # from .utils.cache import cache_result  # TODO: Cache modülü henüz oluşturulmadı
 
-# Database tablolarını sadece production'da oluştur
-# Test ortamında conftest.py handle eder
-import os
+
 if os.getenv("ENVIRONMENT") != "test":
     Base.metadata.create_all(bind=engine)
     print("Tüm tablolar güncel modellerle oluşturuldu.")

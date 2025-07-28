@@ -145,7 +145,9 @@ class TestUserRoutesCRUD:
     def test_create_user_missing_required_fields(self, client, auth_headers):
         """Eksik zorunlu alanlar ile kullanıcı oluşturma testi."""
         incomplete_user = {"name": "Incomplete User"}  # email eksik
-        response = client.post("/api/v1/users/", json=incomplete_user, headers=auth_headers)
+        response = client.post(
+            "/api/v1/users/", json=incomplete_user, headers=auth_headers
+        )
         assert response.status_code == 422
 
     def test_create_user_invalid_email_format(self, client, auth_headers):
@@ -176,7 +178,7 @@ class TestUserRoutesCRUD:
         # İki kullanıcı oluştur
         email1 = f"update1-{uuid.uuid4()}@test.com"
         email2 = f"update2-{uuid.uuid4()}@test.com"
-        
+
         user1_data = {
             "name": "User 1",
             "email": email1,
@@ -185,20 +187,20 @@ class TestUserRoutesCRUD:
             "password": "test123",
         }
         user2_data = {
-            "name": "User 2", 
+            "name": "User 2",
             "email": email2,
             "role": "user",
             "is_active": True,
             "password": "test123",
         }
-        
+
         response1 = client.post("/api/v1/users/", json=user1_data, headers=auth_headers)
         response2 = client.post("/api/v1/users/", json=user2_data, headers=auth_headers)
-        
+
         if response1.status_code == 201 and response2.status_code == 201:
             user1_id = response1.json()["id"]
             user2_id = response2.json()["id"]
-            
+
             # User2'yi User1'in email'i ile güncelle
             update_data = {"email": email1}
             try:
@@ -294,7 +296,9 @@ class TestStockRoutesCRUD:
     def test_get_stock_by_id_success(self, client, auth_headers, create_test_stock):
         """Başarılı stok getirme testi."""
         if create_test_stock:
-            response = client.get(f"/api/v1/stocks/{create_test_stock}", headers=auth_headers)
+            response = client.get(
+                f"/api/v1/stocks/{create_test_stock}", headers=auth_headers
+            )
             assert response.status_code == 200
             data = response.json()
             assert data["id"] == create_test_stock
@@ -312,19 +316,25 @@ class TestStockRoutesCRUD:
             "unit_price": 25.99,
             "supplier": "Test Supplier",
         }
-        
+
         # İlk stok
-        response1 = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
+        response1 = client.post(
+            "/api/v1/stocks/", json=stock_data, headers=auth_headers
+        )
         assert response1.status_code == 201
-        
+
         # Duplicate attempt
-        response2 = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
+        response2 = client.post(
+            "/api/v1/stocks/", json=stock_data, headers=auth_headers
+        )
         assert response2.status_code == 400
 
     def test_update_stock_not_found(self, client, auth_headers):
         """Olmayan stok güncelleme 404 testi."""
         update_data = {"quantity": 100}
-        response = client.put("/api/v1/stocks/99999", json=update_data, headers=auth_headers)
+        response = client.put(
+            "/api/v1/stocks/99999", json=update_data, headers=auth_headers
+        )
         assert response.status_code == 404
 
     def test_delete_stock_success(self, client, auth_headers):
@@ -336,16 +346,20 @@ class TestStockRoutesCRUD:
             "unit_price": 15.99,
             "supplier": "Test Supplier",
         }
-        create_response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
+        create_response = client.post(
+            "/api/v1/stocks/", json=stock_data, headers=auth_headers
+        )
         if create_response.status_code == 201:
             stock_id = create_response.json()["id"]
-            
+
             # Sil
             response = client.delete(f"/api/v1/stocks/{stock_id}", headers=auth_headers)
             assert response.status_code == 204
-            
+
             # Silindi kontrolü
-            get_response = client.get(f"/api/v1/stocks/{stock_id}", headers=auth_headers)
+            get_response = client.get(
+                f"/api/v1/stocks/{stock_id}", headers=auth_headers
+            )
             assert get_response.status_code == 404
 
     def test_delete_stock_not_found(self, client, auth_headers):
@@ -368,14 +382,18 @@ class TestStockRoutesCRUD:
             "unit_price": 35.99,
             "supplier": "Supplier2",
         }
-        
-        response1 = client.post("/api/v1/stocks/", json=stock1_data, headers=auth_headers)
-        response2 = client.post("/api/v1/stocks/", json=stock2_data, headers=auth_headers)
-        
+
+        response1 = client.post(
+            "/api/v1/stocks/", json=stock1_data, headers=auth_headers
+        )
+        response2 = client.post(
+            "/api/v1/stocks/", json=stock2_data, headers=auth_headers
+        )
+
         if response1.status_code == 201 and response2.status_code == 201:
             stock1_id = response1.json()["id"]
             stock2_id = response2.json()["id"]
-            
+
             # Stock2'yi Stock1'in product_name'i ile güncelle
             update_data = {"product_name": stock1_data["product_name"]}
             response = client.put(
@@ -453,7 +471,7 @@ class TestOrderRoutesCRUD:
             update_data = {
                 "product_name": "Updated Product",
                 "amount": 75.0,
-                "status": "completed"
+                "status": "completed",
             }
             response = client.put(
                 f"/api/v1/orders/{order_id}",
@@ -481,10 +499,12 @@ class TestOrderRoutesCRUD:
             "status": "pending",
             "order_items": [],
         }
-        create_response = client.post("/api/v1/orders/", json=order_data, headers=auth_headers)
+        create_response = client.post(
+            "/api/v1/orders/", json=order_data, headers=auth_headers
+        )
         if create_response.status_code == 201:
             order_id = create_response.json()["id"]
-            
+
             response = client.get(f"/api/v1/orders/{order_id}", headers=auth_headers)
             assert response.status_code == 200
             data = response.json()
@@ -498,7 +518,9 @@ class TestOrderRoutesCRUD:
     def test_update_order_not_found(self, client, auth_headers):
         """Olmayan sipariş güncelleme 404 testi."""
         update_data = {"status": "completed"}
-        response = client.put("/api/v1/orders/99999", json=update_data, headers=auth_headers)
+        response = client.put(
+            "/api/v1/orders/99999", json=update_data, headers=auth_headers
+        )
         assert response.status_code == 404
 
     def test_delete_order_success(self, client, auth_headers):
@@ -510,16 +532,20 @@ class TestOrderRoutesCRUD:
             "status": "pending",
             "order_items": [],
         }
-        create_response = client.post("/api/v1/orders/", json=order_data, headers=auth_headers)
+        create_response = client.post(
+            "/api/v1/orders/", json=order_data, headers=auth_headers
+        )
         if create_response.status_code == 201:
             order_id = create_response.json()["id"]
-            
+
             # Sil
             response = client.delete(f"/api/v1/orders/{order_id}", headers=auth_headers)
             assert response.status_code == 204
-            
+
             # Silindi kontrolü
-            get_response = client.get(f"/api/v1/orders/{order_id}", headers=auth_headers)
+            get_response = client.get(
+                f"/api/v1/orders/{order_id}", headers=auth_headers
+            )
             assert get_response.status_code == 404
 
     def test_delete_order_not_found(self, client, auth_headers):
@@ -559,10 +585,12 @@ class TestOrderRoutesCRUD:
             "status": "pending",
             "order_items": [],
         }
-        create_response = client.post("/api/v1/orders/", json=order_data, headers=auth_headers)
+        create_response = client.post(
+            "/api/v1/orders/", json=order_data, headers=auth_headers
+        )
         if create_response.status_code == 201:
             order_id = create_response.json()["id"]
-            
+
             update_data = {
                 "product_name": "Updated Product",
                 "amount": 200.0,
@@ -693,7 +721,7 @@ class TestAuthenticationScenarios:
             ("PUT", "/api/v1/stocks/1"),
             ("DELETE", "/api/v1/stocks/1"),
         ]
-        
+
         for method, endpoint in endpoints:
             if method == "GET":
                 response = client.get(endpoint)
@@ -703,7 +731,7 @@ class TestAuthenticationScenarios:
                 response = client.put(endpoint, json={})
             elif method == "DELETE":
                 response = client.delete(endpoint)
-            
+
             # Auth gerektiren endpoint'ler 401/403 dönmeli
             assert response.status_code in [401, 403, 422]
 
@@ -760,7 +788,9 @@ class TestDatabaseConstraints:
             "is_active": True,
             "password": "test123",
         }
-        response = client.post("/api/v1/users/", json=invalid_user, headers=auth_headers)
+        response = client.post(
+            "/api/v1/users/", json=invalid_user, headers=auth_headers
+        )
         # Validation error veya rollback
         assert response.status_code in [400, 422]
 
@@ -775,11 +805,11 @@ class TestDatabaseConstraints:
             "is_active": True,
             "password": "test123",
         }
-        
+
         # İlk kullanıcı
         response1 = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
         assert response1.status_code == 201
-        
+
         # Aynı email ile ikinci kullanıcı
         user_data["name"] = "Duplicate User"
         response2 = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
@@ -828,7 +858,9 @@ class TestEdgeCases:
             "is_active": True,
             "password": "test123",
         }
-        response = client.post("/api/v1/users/", json=special_data, headers=auth_headers)
+        response = client.post(
+            "/api/v1/users/", json=special_data, headers=auth_headers
+        )
         assert response.status_code in [201, 400, 422]
 
     def test_numeric_strings(self, client, auth_headers):
@@ -840,7 +872,9 @@ class TestEdgeCases:
             "is_active": True,
             "password": "test123",
         }
-        response = client.post("/api/v1/users/", json=numeric_data, headers=auth_headers)
+        response = client.post(
+            "/api/v1/users/", json=numeric_data, headers=auth_headers
+        )
         assert response.status_code == 201
 
     def test_whitespace_only_strings(self, client, auth_headers):
@@ -852,7 +886,9 @@ class TestEdgeCases:
             "is_active": True,
             "password": "test123",
         }
-        response = client.post("/api/v1/users/", json=whitespace_data, headers=auth_headers)
+        response = client.post(
+            "/api/v1/users/", json=whitespace_data, headers=auth_headers
+        )
         assert response.status_code in [201, 422]
 
 
@@ -870,9 +906,11 @@ class TestPerformanceAndLoad:
                 "is_active": True,
                 "password": "test123",
             }
-            response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
+            response = client.post(
+                "/api/v1/users/", json=user_data, headers=auth_headers
+            )
             responses.append(response.status_code)
-        
+
         # Tüm request'ler başarılı olmalı
         success_count = sum(1 for code in responses if code == 201)
         assert success_count == 10
@@ -888,23 +926,26 @@ class TestPerformanceAndLoad:
                 "unit_price": float(i * 1.5),
                 "supplier": f"Supplier {i}",
             }
-            response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
+            response = client.post(
+                "/api/v1/stocks/", json=stock_data, headers=auth_headers
+            )
             if response.status_code == 201:
                 success_count += 1
-        
+
         # En az birkaç tane başarılı olmalı
         assert success_count > 0
-        
+
         # Listele
         response = client.get("/api/v1/stocks/", headers=auth_headers)
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
 
+
 # routes coverage boost - Yeni testler ekle
 class TestAdditionalCoverage:
     """Coverage artırımı için ek testler."""
-    
+
     def test_create_user_exception_handling(self, client, auth_headers):
         """Kullanıcı oluşturma exception handling testi."""
         # Geçersiz veri ile test
@@ -915,7 +956,9 @@ class TestAdditionalCoverage:
             "is_active": True,
             "password": "test123",
         }
-        response = client.post("/api/v1/users/", json=invalid_user, headers=auth_headers)
+        response = client.post(
+            "/api/v1/users/", json=invalid_user, headers=auth_headers
+        )
         assert response.status_code in [400, 422]
 
     def test_update_user_exception_handling(self, client, auth_headers):
@@ -928,13 +971,17 @@ class TestAdditionalCoverage:
             "is_active": True,
             "password": "test123",
         }
-        create_response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
+        create_response = client.post(
+            "/api/v1/users/", json=user_data, headers=auth_headers
+        )
         if create_response.status_code == 201:
             user_id = create_response.json()["id"]
-            
+
             # Geçersiz veri ile güncelleme
             invalid_update = {"email": "invalid-email"}
-            response = client.put(f"/api/v1/users/{user_id}", json=invalid_update, headers=auth_headers)
+            response = client.put(
+                f"/api/v1/users/{user_id}", json=invalid_update, headers=auth_headers
+            )
             assert response.status_code in [400, 422]
 
     def test_create_order_exception_handling(self, client, auth_headers):
@@ -945,7 +992,9 @@ class TestAdditionalCoverage:
             "product_name": "Test Product",
             "amount": -100,  # Negatif amount
         }
-        response = client.post("/api/v1/orders/", json=invalid_order, headers=auth_headers)
+        response = client.post(
+            "/api/v1/orders/", json=invalid_order, headers=auth_headers
+        )
         assert response.status_code == 422
 
     def test_update_order_exception_handling(self, client, auth_headers):
@@ -957,16 +1006,20 @@ class TestAdditionalCoverage:
             "status": "pending",
             "order_items": [],
         }
-        create_response = client.post("/api/v1/orders/", json=order_data, headers=auth_headers)
+        create_response = client.post(
+            "/api/v1/orders/", json=order_data, headers=auth_headers
+        )
         if create_response.status_code == 201:
             order_id = create_response.json()["id"]
-            
+
             # Geçersiz veri ile güncelleme - product_name ve amount ile
             invalid_update = {
                 "product_name": "Test Product",
-                "amount": -50  # Negatif amount
+                "amount": -50,  # Negatif amount
             }
-            response = client.put(f"/api/v1/orders/{order_id}", json=invalid_update, headers=auth_headers)
+            response = client.put(
+                f"/api/v1/orders/{order_id}", json=invalid_update, headers=auth_headers
+            )
             assert response.status_code == 422
 
     def test_stock_operations_exception_handling(self, client, auth_headers):
@@ -977,7 +1030,9 @@ class TestAdditionalCoverage:
             "quantity": -10,  # Negatif quantity
             "unit_price": -5.0,  # Negatif price
         }
-        response = client.post("/api/v1/stocks/", json=invalid_stock, headers=auth_headers)
+        response = client.post(
+            "/api/v1/stocks/", json=invalid_stock, headers=auth_headers
+        )
         assert response.status_code in [400, 422]
 
     def test_database_rollback_scenarios(self, client, auth_headers):
@@ -1013,7 +1068,9 @@ class TestAdditionalCoverage:
             "unit_price": 25.99,
             "supplier": "Test Supplier",
         }
-        response = client.post("/api/v1/stocks/", json=special_stock, headers=auth_headers)
+        response = client.post(
+            "/api/v1/stocks/", json=special_stock, headers=auth_headers
+        )
         assert response.status_code in [201, 400, 422]
 
     def test_unicode_in_stock(self, client, auth_headers):
@@ -1024,7 +1081,9 @@ class TestAdditionalCoverage:
             "unit_price": 25.99,
             "supplier": "测试供应商",
         }
-        response = client.post("/api/v1/stocks/", json=unicode_stock, headers=auth_headers)
+        response = client.post(
+            "/api/v1/stocks/", json=unicode_stock, headers=auth_headers
+        )
         assert response.status_code in [201, 400, 422]
 
     def test_large_numbers_in_stock(self, client, auth_headers):
@@ -1035,7 +1094,9 @@ class TestAdditionalCoverage:
             "unit_price": 999999.99,
             "supplier": "Large Supplier",
         }
-        response = client.post("/api/v1/stocks/", json=large_stock, headers=auth_headers)
+        response = client.post(
+            "/api/v1/stocks/", json=large_stock, headers=auth_headers
+        )
         assert response.status_code in [201, 400, 422]
 
     def test_decimal_precision_in_stock(self, client, auth_headers):
@@ -1046,13 +1107,16 @@ class TestAdditionalCoverage:
             "unit_price": 3.14159265359,
             "supplier": "Precise Supplier",
         }
-        response = client.post("/api/v1/stocks/", json=precise_stock, headers=auth_headers)
+        response = client.post(
+            "/api/v1/stocks/", json=precise_stock, headers=auth_headers
+        )
         assert response.status_code in [201, 400, 422]
+
 
 # routes coverage boost - Son coverage artırımı için testler
 class TestFinalCoverage:
     """Son coverage artırımı için testler."""
-    
+
     def test_edge_case_operations(self, client, auth_headers):
         """Edge case operasyonları testi."""
         # Çok büyük sayılar
@@ -1062,7 +1126,9 @@ class TestFinalCoverage:
             "unit_price": 999999.99,
             "supplier": "Large Supplier",
         }
-        response = client.post("/api/v1/stocks/", json=large_stock, headers=auth_headers)
+        response = client.post(
+            "/api/v1/stocks/", json=large_stock, headers=auth_headers
+        )
         assert response.status_code in [201, 400, 422]
 
     def test_special_characters_operations(self, client, auth_headers):
@@ -1074,7 +1140,9 @@ class TestFinalCoverage:
             "unit_price": 25.99,
             "supplier": "Malicious Supplier",
         }
-        response = client.post("/api/v1/stocks/", json=malicious_stock, headers=auth_headers)
+        response = client.post(
+            "/api/v1/stocks/", json=malicious_stock, headers=auth_headers
+        )
         assert response.status_code in [201, 400, 422]
 
     def test_unicode_operations(self, client, auth_headers):
@@ -1086,7 +1154,9 @@ class TestFinalCoverage:
             "unit_price": 25.99,
             "supplier": "🚀 🎉 🌟 测试供应商",
         }
-        response = client.post("/api/v1/stocks/", json=unicode_stock, headers=auth_headers)
+        response = client.post(
+            "/api/v1/stocks/", json=unicode_stock, headers=auth_headers
+        )
         assert response.status_code in [201, 400, 422]
 
     def test_decimal_precision_operations(self, client, auth_headers):
@@ -1098,5 +1168,7 @@ class TestFinalCoverage:
             "unit_price": 3.141592653589793238462643383279,
             "supplier": "Precise Supplier",
         }
-        response = client.post("/api/v1/stocks/", json=precise_stock, headers=auth_headers)
+        response = client.post(
+            "/api/v1/stocks/", json=precise_stock, headers=auth_headers
+        )
         assert response.status_code in [201, 400, 422]

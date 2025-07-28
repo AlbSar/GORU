@@ -3,7 +3,6 @@ Dummy data generator script.
 Test ve development için sahte veri oluşturur.
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -12,9 +11,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 import random
 
-from app.database import engine
 from app.models import Order, Stock, User
-from app.schemas import OrderCreate, StockCreate, UserCreate
 from faker import Faker
 from sqlalchemy.orm import Session
 

@@ -3,7 +3,6 @@ import os
 from .database import test_connection  # ✅ Alternatif
 
 
-
 def print_db_debug_info():
     print("--- Veritabanı Bağlantı Debug Bilgileri ---")
     print(f"DATABASE_URL: {os.getenv('DATABASE_URL')}")
