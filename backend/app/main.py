@@ -26,6 +26,7 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Uygulama başlatılıyor...")
     from .database import get_engine
+
     engine = get_engine()
     Base.metadata.create_all(bind=engine)
     logger.info("Veritabanı tabloları oluşturuldu.")

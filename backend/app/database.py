@@ -13,9 +13,6 @@ from sqlalchemy.pool import StaticPool
 from .core.settings import settings
 
 
-
-
-
 # Lazy engine creation - sadece gerektiğinde oluştur
 _engine = None
 _SessionLocal = None
@@ -73,8 +70,10 @@ def get_session_local():
 def engine():
     return get_engine()
 
+
 def SessionLocal():
     return get_session_local()
+
 
 Base = declarative_base()
 
