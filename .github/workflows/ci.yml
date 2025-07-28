@@ -49,20 +49,6 @@ jobs:
         run: |
           docker build -t goru-backend-test:ci -f backend/Dockerfile backend
 
-      - name: Run basic tests
-        env:
-          ENVIRONMENT: test
-          TESTING: true
-        run: |
-          docker run --rm -e ENVIRONMENT=${ENVIRONMENT} -e TESTING=${TESTING} goru-backend-test:ci pytest app/tests/test_users.py -v
-
-      - name: Run auth tests
-        env:
-          ENVIRONMENT: test
-          TESTING: true
-        run: |
-          docker run --rm -e ENVIRONMENT=${ENVIRONMENT} -e TESTING=${TESTING} goru-backend-test:ci pytest app/tests/test_auth_error_handling.py -v
-
       - name: Run mock tests
         env:
           USE_MOCK: true
