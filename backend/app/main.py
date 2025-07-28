@@ -28,8 +28,9 @@ async def lifespan(app: FastAPI):
     logger.info("Uygulama başlatılıyor...")
 
     # Mock modunda veya test modunda veritabanı bağlantısı kurma
-    from .core.settings import settings
     import os
+
+    from .core.settings import settings
 
     is_testing = os.getenv("TESTING") or os.getenv("PYTEST_CURRENT_TEST")
 
