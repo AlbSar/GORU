@@ -3,9 +3,10 @@
 Linting sorunlarını otomatik olarak düzeltmek için script.
 """
 
+import os
 import subprocess
 import sys
-import os
+
 
 def run_command(command, description):
     """Komut çalıştır ve sonucu göster."""

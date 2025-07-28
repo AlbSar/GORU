@@ -5,6 +5,7 @@ Test dosyasındaki endpoint path'lerini düzeltmek için script.
 
 import re
 
+
 def fix_paths():
     """Test dosyasındaki tüm path'leri düzelt."""
     

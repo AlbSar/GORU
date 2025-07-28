@@ -12,7 +12,6 @@ from sqlalchemy.pool import StaticPool
 
 from .core.settings import settings
 
-
 # Lazy engine creation - sadece gerektiğinde oluştur
 _engine = None
 _SessionLocal = None
