@@ -65,25 +65,25 @@ jobs:
 
       - name: Run basic tests
         env:
-          DATABASE_URL: postgresql://goru:goru@db:5432/goru_db
+          DATABASE_URL: postgresql://goru:goru@localhost:5432/goru_db
           ENVIRONMENT: test
         run: |
-          docker run --rm --network container:db -e DATABASE_URL=${DATABASE_URL} -e ENVIRONMENT=${ENVIRONMENT} goru-backend-test:ci pytest tests/test_users.py -v
+          docker run --rm -e DATABASE_URL=${DATABASE_URL} -e ENVIRONMENT=${ENVIRONMENT} goru-backend-test:ci pytest tests/test_users.py -v
 
       - name: Run auth tests
         env:
-          DATABASE_URL: postgresql://goru:goru@db:5432/goru_db
+          DATABASE_URL: postgresql://goru:goru@localhost:5432/goru_db
           ENVIRONMENT: test
         run: |
-          docker run --rm --network container:db -e DATABASE_URL=${DATABASE_URL} -e ENVIRONMENT=${ENVIRONMENT} goru-backend-test:ci pytest tests/test_auth_error_handling.py -v
+          docker run --rm -e DATABASE_URL=${DATABASE_URL} -e ENVIRONMENT=${ENVIRONMENT} goru-backend-test:ci pytest tests/test_auth_error_handling.py -v
 
       - name: Run mock tests
         env:
-          DATABASE_URL: postgresql://goru:goru@db:5432/goru_db
+          DATABASE_URL: postgresql://goru:goru@localhost:5432/goru_db
           USE_MOCK: true
           ENVIRONMENT: test
         run: |
-          docker run --rm --network container:db -e DATABASE_URL=${DATABASE_URL} -e USE_MOCK=${USE_MOCK} -e ENVIRONMENT=${ENVIRONMENT} goru-backend-test:ci pytest tests/test_mock_endpoints.py -v
+          docker run --rm -e DATABASE_URL=${DATABASE_URL} -e USE_MOCK=${USE_MOCK} -e ENVIRONMENT=${ENVIRONMENT} goru-backend-test:ci pytest tests/test_mock_endpoints.py -v
 
       - name: Upload coverage to Codecov (optional)
         uses: codecov/codecov-action@v3
@@ -107,4 +107,4 @@ jobs:
         env:
           USE_MOCK: true
         run: |
-          docker run --rm -e USE_MOCK=${USE_MOCK} goru-backend-mock:ci pytest backend/app/tests/test_mock_endpoints.py -v
+          docker run --rm -e USE_MOCK=${USE_MOCK} goru-backend-mock:ci pytest tests/test_mock_endpoints.py -v
