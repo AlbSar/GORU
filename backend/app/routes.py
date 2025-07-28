@@ -22,9 +22,13 @@ from .schemas import StockCreate, StockRead, StockUpdate
 # from .utils.cache import cache_result  # TODO: Cache modülü henüz oluşturulmadı
 
 
-if os.getenv("ENVIRONMENT") != "test":
-    Base.metadata.create_all(bind=engine)
-    print("Tüm tablolar güncel modellerle oluşturuldu.")
+# Test ortamında tablo oluşturma işlemini atla
+if os.getenv("ENVIRONMENT") != "test" and os.getenv("USE_MOCK") != "true":
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("Tüm tablolar güncel modellerle oluşturuldu.")
+    except Exception as e:
+        print(f"Tablo oluşturma hatası (göz ardı edildi): {e}")
 
 router = APIRouter()
 
