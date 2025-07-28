@@ -33,6 +33,7 @@ DATABASE_URL = get_database_url()
 _engine = None
 _SessionLocal = None
 
+
 def get_engine():
     """Engine'i lazy olarak oluşturur."""
     global _engine
@@ -55,12 +56,16 @@ def get_engine():
             )
     return _engine
 
+
 def get_session_local():
     """SessionLocal'ı lazy olarak oluşturur."""
     global _SessionLocal
     if _SessionLocal is None:
-        _SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=get_engine())
+        _SessionLocal = sessionmaker(
+            autocommit=False, autoflush=False, bind=get_engine()
+        )
     return _SessionLocal
+
 
 # Backward compatibility için
 engine = get_engine()
