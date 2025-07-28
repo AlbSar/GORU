@@ -27,17 +27,23 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Uygulama başlatılıyor...")
 
-    # Mock modunda veritabanı bağlantısı kurma
+    # Mock modunda veya test modunda veritabanı bağlantısı kurma
     from .core.settings import settings
+    import os
 
-    if not settings.USE_MOCK:
+    is_testing = os.getenv("TESTING") or os.getenv("PYTEST_CURRENT_TEST")
+    
+    if not settings.USE_MOCK and not is_testing:
         from .database import get_engine
 
         engine = get_engine()
         Base.metadata.create_all(bind=engine)
         logger.info("Veritabanı tabloları oluşturuldu.")
     else:
-        logger.info("Mock modu aktif - veritabanı bağlantısı atlanıyor.")
+        if settings.USE_MOCK:
+            logger.info("Mock modu aktif - veritabanı bağlantısı atlanıyor.")
+        if is_testing:
+            logger.info("Test modu aktif - veritabanı bağlantısı atlanıyor.")
 
     yield
 

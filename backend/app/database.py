@@ -72,7 +72,7 @@ def engine():
 
 
 def SessionLocal():
-    return get_session_local()
+    return get_session_local()()
 
 
 Base = declarative_base()
