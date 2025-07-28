@@ -2,6 +2,7 @@
 Stock endpoint testleri.
 """
 
+import uuid
 import pytest
 from fastapi.testclient import TestClient
 
@@ -12,7 +13,7 @@ headers = {"Authorization": "Bearer secret-token"}
 
 
 def unique_product():
-    return f"Product_{pytest.uuid4()}"
+    return f"Product_{uuid.uuid4()}"
 
 
 def test_create_stock():

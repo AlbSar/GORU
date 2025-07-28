@@ -5,7 +5,8 @@ Hassas verileri anonim veya pseudonim hale getirir.
 
 import hashlib
 import re
-from typing import Any, Dict, List
+from functools import lru_cache
+from typing import Any, Dict, List, Optional
 
 from faker import Faker
 
@@ -18,8 +19,11 @@ class DataAnonymizer:
     @staticmethod
     def anonymize_email(email: str) -> str:
         """E-posta adresini anonimleştirir."""
+        if not email:
+            return ""
+
         if "@" not in email:
-            return email
+            return "***"
 
         username, domain = email.split("@", 1)
         # İlk ve son karakteri saklayıp ortasını * ile değiştir
@@ -34,7 +38,7 @@ class DataAnonymizer:
     def anonymize_name(name: str) -> str:
         """İsmi anonimleştirir."""
         if not name:
-            return name
+            return ""
 
         words = name.split()
         anonymized_words = []
@@ -43,34 +47,40 @@ class DataAnonymizer:
             if len(word) > 1:
                 anonymized_word = word[0] + "*" * (len(word) - 1)
             else:
-                anonymized_word = "*"
+                anonymized_word = word
             anonymized_words.append(anonymized_word)
 
         return " ".join(anonymized_words)
 
     @staticmethod
+    @lru_cache(maxsize=1000)
     def pseudonymize_with_hash(data: str, salt: str = "goru_salt") -> str:
         """Veriyi hash ile pseudonim hale getirir."""
-        if not data:
-            return data
+        if data is None:
+            data = ""
 
         hash_obj = hashlib.sha256((data + salt).encode())
-        return hash_obj.hexdigest()[:8]  # İlk 8 karakter
+        return hash_obj.hexdigest()[:16]  # 16 karakter - güvenli ve performanslı
 
     @staticmethod
     def anonymize_phone(phone: str) -> str:
         """Telefon numarasını anonimleştirir."""
         if not phone:
-            return phone
+            return ""
 
         # Sadece rakamları al
         digits = re.sub(r"\D", "", phone)
 
-        if len(digits) >= 4:
-            # İlk 3 ve son 2 rakamı göster, ortasını * ile değiştir
-            anonymized = digits[:3] + "*" * (len(digits) - 5) + digits[-2:]
+        if len(digits) <= 3:
+            return phone
+
+        if len(digits) <= 5:
+            anonymized = digits[0] + "*" * (len(digits) - 2) + digits[-1]
+        elif digits.startswith("90") and len(digits) >= 12:
+            # Türkiye telefon numarası formatı
+            anonymized = digits[:2] + "*" * (len(digits) - 5) + digits[-3:]
         else:
-            anonymized = "*" * len(digits)
+            anonymized = digits[:3] + "*" * (len(digits) - 7) + digits[-4:]
 
         # Orijinal formatı korumaya çalış
         result = phone
@@ -84,6 +94,9 @@ class DataAnonymizer:
     @staticmethod
     def anonymize_user_data(user_data: Dict[str, Any]) -> Dict[str, Any]:
         """Kullanıcı verisini anonimleştirir."""
+        if not user_data:
+            return {}
+
         anonymized = user_data.copy()
 
         if "email" in anonymized:
@@ -111,9 +124,16 @@ class DataAnonymizer:
 
     @staticmethod
     def anonymize_dataset(
-        data_list: List[Dict[str, Any]], fields_to_anonymize: List[str]
+        data_list: Optional[List[Dict[str, Any]]], 
+        fields_to_anonymize: List[str]
     ) -> List[Dict[str, Any]]:
         """Veri setindeki belirtilen alanları anonimleştirir."""
+        if data_list is None:
+            return []
+
+        if not fields_to_anonymize:
+            return data_list
+
         anonymized_list = []
 
         for item in data_list:

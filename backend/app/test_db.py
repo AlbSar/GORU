@@ -1,6 +1,7 @@
 import os
 
-from database import test_connection
+from .database import test_connection  # ✅ Alternatif
+
 
 
 def print_db_debug_info():

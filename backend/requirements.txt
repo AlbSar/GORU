@@ -17,3 +17,5 @@ faker
 isort
 pylint
 pre-commit
+pydantic_settings
+PyJWT

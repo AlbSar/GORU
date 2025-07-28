@@ -5,24 +5,24 @@ RESTful API standartlarına uygun endpoint'ler içerir.
 """
 
 import uuid
-from typing import Generic, List, Type
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import Field, field_validator
-from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from . import models, schemas
 from .auth import get_current_user
 from .database import Base, SessionLocal, engine
-from .mock_routes import mock_router
 from .models import Stock
 from .schemas import StockCreate, StockRead, StockUpdate
-from .utils.anonymizer import DataAnonymizer
 # from .utils.cache import cache_result  # TODO: Cache modülü henüz oluşturulmadı
 
-Base.metadata.create_all(bind=engine)
-print("Tüm tablolar güncel modellerle oluşturuldu.")
+# Database tablolarını sadece production'da oluştur
+# Test ortamında conftest.py handle eder
+import os
+if os.getenv("ENVIRONMENT") != "test":
+    Base.metadata.create_all(bind=engine)
+    print("Tüm tablolar güncel modellerle oluşturuldu.")
 
 router = APIRouter()
 
