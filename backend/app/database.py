@@ -29,25 +29,42 @@ def get_database_url():
 # Database URL'ini al
 DATABASE_URL = get_database_url()
 
-# SQLAlchemy engine yapılandırması
-if DATABASE_URL.startswith("sqlite"):
-    # SQLite için özel yapılandırma
-    engine = create_engine(
-        DATABASE_URL,
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-else:
-    # PostgreSQL için connection pooling
-    engine = create_engine(
-        DATABASE_URL,
-        pool_size=5,
-        max_overflow=10,
-        pool_pre_ping=True,
-        echo=settings.DEBUG,
-    )
+# Lazy engine creation - sadece gerektiğinde oluştur
+_engine = None
+_SessionLocal = None
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def get_engine():
+    """Engine'i lazy olarak oluşturur."""
+    global _engine
+    if _engine is None:
+        if DATABASE_URL.startswith("sqlite"):
+            # SQLite için özel yapılandırma
+            _engine = create_engine(
+                DATABASE_URL,
+                connect_args={"check_same_thread": False},
+                poolclass=StaticPool,
+            )
+        else:
+            # PostgreSQL için connection pooling
+            _engine = create_engine(
+                DATABASE_URL,
+                pool_size=5,
+                max_overflow=10,
+                pool_pre_ping=True,
+                echo=settings.DEBUG,
+            )
+    return _engine
+
+def get_session_local():
+    """SessionLocal'ı lazy olarak oluşturur."""
+    global _SessionLocal
+    if _SessionLocal is None:
+        _SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=get_engine())
+    return _SessionLocal
+
+# Backward compatibility için
+engine = get_engine()
+SessionLocal = get_session_local()
 Base = declarative_base()
 
 
