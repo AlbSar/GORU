@@ -782,8 +782,6 @@ def test_put_order_invalid_data_422():
     assert "detail" in data
 
 
-
-
 def test_create_order_internal_server_error():
     """POST /orders sırasında exception fırlatılırsa → 500"""
     with patch(

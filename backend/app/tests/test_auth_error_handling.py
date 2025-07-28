@@ -283,7 +283,6 @@ class TestAuthIntegration:
         # create_access_token coverage için
         from datetime import timedelta
 
-
         data = {"sub": "testuser", "role": "admin"}
         expires_delta = timedelta(minutes=30)
         token = create_access_token(data, expires_delta)
