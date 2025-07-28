@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
-from .database import Base, engine
+from .database import Base
 from .routes import router
 
 # Logging konfigürasyonu
@@ -25,6 +25,8 @@ async def lifespan(app: FastAPI):
     """Uygulama başlangıç ve kapanış işlemleri"""
     # Startup
     logger.info("Uygulama başlatılıyor...")
+    from .database import get_engine
+    engine = get_engine()
     Base.metadata.create_all(bind=engine)
     logger.info("Veritabanı tabloları oluşturuldu.")
 
