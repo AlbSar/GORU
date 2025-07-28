@@ -68,7 +68,9 @@ class TestMockEndpoints:
         response = mock_enabled_client.get("/mock/users/9999")
         assert response.status_code == 404
         response_data = response.json()
-        assert "not found" in response_data.get("detail", "") or "not found" in response_data.get("message", "")
+        assert "not found" in response_data.get(
+            "detail", ""
+        ) or "not found" in response_data.get("message", "")
 
     def test_mock_user_create(self, mock_enabled_client):
         """Mock kullanıcı oluşturma endpoint'ini test eder."""

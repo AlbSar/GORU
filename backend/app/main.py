@@ -26,11 +26,13 @@ async def lifespan(app: FastAPI):
     """Uygulama başlangıç ve kapanış işlemleri"""
     # Startup
     logger.info("Uygulama başlatılıyor...")
-    
+
     # Mock modunda veritabanı bağlantısı kurma
     from .core.settings import settings
+
     if not settings.USE_MOCK:
         from .database import get_engine
+
         engine = get_engine()
         Base.metadata.create_all(bind=engine)
         logger.info("Veritabanı tabloları oluşturuldu.")
@@ -144,6 +146,7 @@ app.include_router(router, prefix="/api/v1")
 # Mock router'ı ekle (sadece USE_MOCK=true ise)
 if settings.USE_MOCK:
     from .mock_routes import mock_router
+
     app.include_router(mock_router)
 
 
