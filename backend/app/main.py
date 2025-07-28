@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
+from .core.settings import settings
 from .database import Base
 from .routes import router
 
@@ -25,11 +26,16 @@ async def lifespan(app: FastAPI):
     """Uygulama başlangıç ve kapanış işlemleri"""
     # Startup
     logger.info("Uygulama başlatılıyor...")
-    from .database import get_engine
-
-    engine = get_engine()
-    Base.metadata.create_all(bind=engine)
-    logger.info("Veritabanı tabloları oluşturuldu.")
+    
+    # Mock modunda veritabanı bağlantısı kurma
+    from .core.settings import settings
+    if not settings.USE_MOCK:
+        from .database import get_engine
+        engine = get_engine()
+        Base.metadata.create_all(bind=engine)
+        logger.info("Veritabanı tabloları oluşturuldu.")
+    else:
+        logger.info("Mock modu aktif - veritabanı bağlantısı atlanıyor.")
 
     yield
 
@@ -135,11 +141,20 @@ async def general_exception_handler(request: Request, exc: Exception):
 # Router'ı ekle
 app.include_router(router, prefix="/api/v1")
 
+# Mock router'ı ekle (sadece USE_MOCK=true ise)
+if settings.USE_MOCK:
+    from .mock_routes import mock_router
+    app.include_router(mock_router)
+
 
 @app.get("/")
 async def root():
     """Ana endpoint"""
-    return {"message": "GORU ERP API", "version": "1.0.0"}
+    response = {"message": "GORU ERP API", "version": "1.0.0"}
+    if settings.USE_MOCK:
+        response["mock_mode"] = True
+        response["mock_prefix"] = settings.MOCK_API_PREFIX
+    return response
 
 
 @app.get("/health")

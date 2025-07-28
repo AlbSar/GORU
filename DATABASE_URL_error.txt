@@ -1,0 +1,2761 @@
+Run docker run --rm -e DATABASE_URL=${DATABASE_URL} -e ENVIRONMENT=${ENVIRONMENT} goru-backend-test:ci pytest /app/tests/test_users.py -v
+============================= test session starts ==============================
+platform linux -- Python 3.11.13, pytest-8.4.1, pluggy-1.6.0 -- /usr/local/bin/python3.11
+cachedir: .pytest_cache
+rootdir: /app
+plugins: cov-6.2.1, Faker-37.4.2, anyio-4.9.0
+collecting ... collected 9 items
+
+tests/test_users.py::test_create_user FAILED                             [ 11%]
+tests/test_users.py::test_create_user_missing_field FAILED               [ 22%]
+tests/test_users.py::test_create_user_invalid_email FAILED               [ 33%]
+tests/test_users.py::test_create_user_duplicate_email FAILED             [ 44%]
+tests/test_users.py::test_get_nonexistent_user FAILED                    [ 55%]
+tests/test_users.py::test_list_users FAILED                              [ 66%]
+tests/test_users.py::test_get_user FAILED                                [ 77%]
+tests/test_users.py::test_update_user FAILED                             [ 88%]
+tests/test_users.py::test_delete_user FAILED                             [100%]
+
+=================================== FAILURES ===================================
+_______________________________ test_create_user _______________________________
+
+    def get_db():
+        """
+        TR: Her istek için veritabanı oturumu sağlar.
+        EN: Provides a database session per request.
+        """
+        db = SessionLocal()
+        try:
+>           yield db
+
+routes.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py:27: in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:302: in app
+    raw_response = await run_endpoint_function(
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:213: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+user = UserCreate(name='Test User', email='test-0f83babb-c5a0-401d-9495-3eb37252c4e7@example.com', role='customer', is_active=True, password='test123')
+db = sessionmaker(class_='Session', autocommit=False, bind=Engine(sqlite:///./test.db), autoflush=False, expire_on_commit=True)
+user_auth = {'id': 1, 'user': 'test_user'}
+
+    @router.post(
+        "/users/",
+        response_model=schemas.UserRead,
+        status_code=status.HTTP_201_CREATED,
+        summary="Kullanıcı oluştur / Create user",
+        responses={
+            201: {
+                "description": "Kullanıcı başarıyla oluşturuldu / "
+                "User created successfully."
+            },
+            400: {
+                "description": "E-posta zaten kayıtlı veya geçersiz veri / "
+                "Email already registered or invalid data."
+            },
+            401: {"description": "Yetkisiz / Unauthorized"},
+        },
+    )
+    async def create_user(
+        user: schemas.UserCreate,
+        db: Session = Depends(get_db),
+        user_auth=Depends(get_current_user),
+    ):
+        """
+        TR: Yeni kullanıcı oluşturur. E-posta benzersiz olmalıdır.
+        EN: Creates a new user. Email must be unique.
+        """
+        print(f"[DEBUG] Gelen kullanıcı verisi: {user.model_dump()}")
+>       existing = db.query(models.User).filter(models.User.email == user.email).first()
+                   ^^^^^^^^
+E       AttributeError: 'sessionmaker' object has no attribute 'query'
+
+routes.py:89: AttributeError
+
+During handling of the above exception, another exception occurred:
+
+client = <starlette.testclient.TestClient object at 0x7f32cd609510>
+auth_headers = {'Authorization': '***'}
+
+    def test_create_user(client, auth_headers):
+        print("[TEST] test_create_user")
+        email = unique_email()
+>       response = client.post(
+            "/api/v1/users/",
+            json={"name": "Test User", "email": email, "password": "test123"},
+            headers=auth_headers,
+        )
+
+tests/test_users.py:16: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:552: in post
+    return super().post(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:451: in request
+    return super().request(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:354: in handle_request
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:290: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:221: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:736: in app
+    await route.handle(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:290: in handle
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:78: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:75: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:291: in app
+    async with AsyncExitStack() as async_exit_stack:
+/usr/local/lib/python3.11/contextlib.py:745: in __aexit__
+    raise exc_details[1]
+/usr/local/lib/python3.11/contextlib.py:728: in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:231: in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py:30: in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:2470: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:967: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:158: in __exit__
+    self.gen.throw(typ, value, traceback)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def get_db():
+        """
+        TR: Her istek için veritabanı oturumu sağlar.
+        EN: Provides a database session per request.
+        """
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+>           db.close()
+            ^^^^^^^^
+E           AttributeError: 'sessionmaker' object has no attribute 'close'
+
+routes.py:56: AttributeError
+---------------------------- Captured stderr setup -----------------------------
+INFO:app.main:Uygulama başlatılıyor...
+INFO:app.main:Veritabanı tabloları oluşturuldu.
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:27 Uygulama başlatılıyor...
+INFO     app.main:main.py:32 Veritabanı tabloları oluşturuldu.
+----------------------------- Captured stdout call -----------------------------
+[TEST] test_create_user
+[DEBUG] Gelen kullanıcı verisi: {'name': 'Test User', 'email': 'test-0f83babb-c5a0-401d-9495-3eb37252c4e7@example.com', 'role': 'customer', 'is_active': True, 'password': 'test123'}
+----------------------------- Captured stderr call -----------------------------
+ERROR:app.main:Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/app/routes.py", line 54, in get_db
+    yield db
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/routes.py", line 89, in create_user
+    existing = db.query(models.User).filter(models.User.email == user.email).first()
+               ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'query'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 231, in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 30, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+------------------------------ Captured log call -------------------------------
+ERROR    app.main:main.py:123 Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/app/routes.py", line 54, in get_db
+    yield db
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/routes.py", line 89, in create_user
+    existing = db.query(models.User).filter(models.User.email == user.email).first()
+               ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'query'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 231, in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 30, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+--------------------------- Captured stderr teardown ---------------------------
+INFO:app.main:Uygulama kapatılıyor...
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:37 Uygulama kapatılıyor...
+________________________ test_create_user_missing_field ________________________
+
+client = <starlette.testclient.TestClient object at 0x7f32cd60b8d0>
+auth_headers = {'Authorization': '***'}
+
+    def test_create_user_missing_field(client, auth_headers):
+        print("[TEST] test_create_user_missing_field")
+>       response = client.post(
+            "/api/v1/users/", json={"name": "No Email"}, headers=auth_headers
+        )
+
+tests/test_users.py:30: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:552: in post
+    return super().post(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:451: in request
+    return super().request(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:354: in handle_request
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:290: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:221: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:736: in app
+    await route.handle(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:290: in handle
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:78: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:75: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:291: in app
+    async with AsyncExitStack() as async_exit_stack:
+/usr/local/lib/python3.11/contextlib.py:745: in __aexit__
+    raise exc_details[1]
+/usr/local/lib/python3.11/contextlib.py:728: in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:217: in __aexit__
+    await anext(self.gen)
+/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py:37: in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+/usr/local/lib/python3.11/site-packages/anyio/to_thread.py:56: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:2470: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:967: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:144: in __exit__
+    next(self.gen)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def get_db():
+        """
+        TR: Her istek için veritabanı oturumu sağlar.
+        EN: Provides a database session per request.
+        """
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+>           db.close()
+            ^^^^^^^^
+E           AttributeError: 'sessionmaker' object has no attribute 'close'
+
+routes.py:56: AttributeError
+---------------------------- Captured stderr setup -----------------------------
+INFO:app.main:Uygulama başlatılıyor...
+INFO:app.main:Veritabanı tabloları oluşturuldu.
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:27 Uygulama başlatılıyor...
+INFO     app.main:main.py:32 Veritabanı tabloları oluşturuldu.
+----------------------------- Captured stdout call -----------------------------
+[TEST] test_create_user_missing_field
+----------------------------- Captured stderr call -----------------------------
+ERROR:app.main:Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 217, in __aexit__
+    await anext(self.gen)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 37, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 144, in __exit__
+    next(self.gen)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+------------------------------ Captured log call -------------------------------
+ERROR    app.main:main.py:123 Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 217, in __aexit__
+    await anext(self.gen)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 37, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 144, in __exit__
+    next(self.gen)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+--------------------------- Captured stderr teardown ---------------------------
+INFO:app.main:Uygulama kapatılıyor...
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:37 Uygulama kapatılıyor...
+________________________ test_create_user_invalid_email ________________________
+
+client = <starlette.testclient.TestClient object at 0x7f32ca5da2d0>
+auth_headers = {'Authorization': '***'}
+
+    def test_create_user_invalid_email(client, auth_headers):
+        print("[TEST] test_create_user_invalid_email")
+>       response = client.post(
+            "/api/v1/users/",
+            json={"name": "Invalid Email", "email": "not-an-email"},
+            headers=auth_headers,
+        )
+
+tests/test_users.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:552: in post
+    return super().post(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:451: in request
+    return super().request(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:354: in handle_request
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:290: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:221: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:736: in app
+    await route.handle(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:290: in handle
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:78: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:75: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:291: in app
+    async with AsyncExitStack() as async_exit_stack:
+/usr/local/lib/python3.11/contextlib.py:745: in __aexit__
+    raise exc_details[1]
+/usr/local/lib/python3.11/contextlib.py:728: in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:217: in __aexit__
+    await anext(self.gen)
+/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py:37: in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+/usr/local/lib/python3.11/site-packages/anyio/to_thread.py:56: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:2470: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:967: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:144: in __exit__
+    next(self.gen)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def get_db():
+        """
+        TR: Her istek için veritabanı oturumu sağlar.
+        EN: Provides a database session per request.
+        """
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+>           db.close()
+            ^^^^^^^^
+E           AttributeError: 'sessionmaker' object has no attribute 'close'
+
+routes.py:56: AttributeError
+---------------------------- Captured stderr setup -----------------------------
+INFO:app.main:Uygulama başlatılıyor...
+INFO:app.main:Veritabanı tabloları oluşturuldu.
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:27 Uygulama başlatılıyor...
+INFO     app.main:main.py:32 Veritabanı tabloları oluşturuldu.
+----------------------------- Captured stdout call -----------------------------
+[TEST] test_create_user_invalid_email
+----------------------------- Captured stderr call -----------------------------
+ERROR:app.main:Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 217, in __aexit__
+    await anext(self.gen)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 37, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 144, in __exit__
+    next(self.gen)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+------------------------------ Captured log call -------------------------------
+ERROR    app.main:main.py:123 Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 217, in __aexit__
+    await anext(self.gen)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 37, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 144, in __exit__
+    next(self.gen)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+--------------------------- Captured stderr teardown ---------------------------
+INFO:app.main:Uygulama kapatılıyor...
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:37 Uygulama kapatılıyor...
+_______________________ test_create_user_duplicate_email _______________________
+
+    def get_db():
+        """
+        TR: Her istek için veritabanı oturumu sağlar.
+        EN: Provides a database session per request.
+        """
+        db = SessionLocal()
+        try:
+>           yield db
+
+routes.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py:27: in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:302: in app
+    raw_response = await run_endpoint_function(
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:213: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+user = UserCreate(name='User1', email='test-4a107d6a-ee0f-4adc-8e0e-1ae051e11ae7@example.com', role='customer', is_active=True, password='test123')
+db = sessionmaker(class_='Session', autocommit=False, bind=Engine(sqlite:///./test.db), autoflush=False, expire_on_commit=True)
+user_auth = {'id': 1, 'user': 'test_user'}
+
+    @router.post(
+        "/users/",
+        response_model=schemas.UserRead,
+        status_code=status.HTTP_201_CREATED,
+        summary="Kullanıcı oluştur / Create user",
+        responses={
+            201: {
+                "description": "Kullanıcı başarıyla oluşturuldu / "
+                "User created successfully."
+            },
+            400: {
+                "description": "E-posta zaten kayıtlı veya geçersiz veri / "
+                "Email already registered or invalid data."
+            },
+            401: {"description": "Yetkisiz / Unauthorized"},
+        },
+    )
+    async def create_user(
+        user: schemas.UserCreate,
+        db: Session = Depends(get_db),
+        user_auth=Depends(get_current_user),
+    ):
+        """
+        TR: Yeni kullanıcı oluşturur. E-posta benzersiz olmalıdır.
+        EN: Creates a new user. Email must be unique.
+        """
+        print(f"[DEBUG] Gelen kullanıcı verisi: {user.model_dump()}")
+>       existing = db.query(models.User).filter(models.User.email == user.email).first()
+                   ^^^^^^^^
+E       AttributeError: 'sessionmaker' object has no attribute 'query'
+
+routes.py:89: AttributeError
+
+During handling of the above exception, another exception occurred:
+
+client = <starlette.testclient.TestClient object at 0x7f32ca32b650>
+auth_headers = {'Authorization': '***'}
+
+    def test_create_user_duplicate_email(client, auth_headers):
+        email = unique_email()
+        print(f"[TEST] test_create_user_duplicate_email: email={email}")
+>       client.post(
+            "/api/v1/users/",
+            json={"name": "User1", "email": email, "password": "test123"},
+            headers=auth_headers,
+        )
+
+tests/test_users.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:552: in post
+    return super().post(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:451: in request
+    return super().request(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:354: in handle_request
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:290: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:221: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:736: in app
+    await route.handle(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:290: in handle
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:78: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:75: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:291: in app
+    async with AsyncExitStack() as async_exit_stack:
+/usr/local/lib/python3.11/contextlib.py:745: in __aexit__
+    raise exc_details[1]
+/usr/local/lib/python3.11/contextlib.py:728: in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:231: in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py:30: in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:2470: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:967: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:158: in __exit__
+    self.gen.throw(typ, value, traceback)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def get_db():
+        """
+        TR: Her istek için veritabanı oturumu sağlar.
+        EN: Provides a database session per request.
+        """
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+>           db.close()
+            ^^^^^^^^
+E           AttributeError: 'sessionmaker' object has no attribute 'close'
+
+routes.py:56: AttributeError
+---------------------------- Captured stderr setup -----------------------------
+INFO:app.main:Uygulama başlatılıyor...
+INFO:app.main:Veritabanı tabloları oluşturuldu.
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:27 Uygulama başlatılıyor...
+INFO     app.main:main.py:32 Veritabanı tabloları oluşturuldu.
+----------------------------- Captured stdout call -----------------------------
+[TEST] test_create_user_duplicate_email: email=test-4a107d6a-ee0f-4adc-8e0e-1ae051e11ae7@example.com
+[DEBUG] Gelen kullanıcı verisi: {'name': 'User1', 'email': 'test-4a107d6a-ee0f-4adc-8e0e-1ae051e11ae7@example.com', 'role': 'customer', 'is_active': True, 'password': 'test123'}
+----------------------------- Captured stderr call -----------------------------
+ERROR:app.main:Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/app/routes.py", line 54, in get_db
+    yield db
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/routes.py", line 89, in create_user
+    existing = db.query(models.User).filter(models.User.email == user.email).first()
+               ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'query'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 231, in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 30, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+------------------------------ Captured log call -------------------------------
+ERROR    app.main:main.py:123 Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/app/routes.py", line 54, in get_db
+    yield db
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/routes.py", line 89, in create_user
+    existing = db.query(models.User).filter(models.User.email == user.email).first()
+               ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'query'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 231, in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 30, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+--------------------------- Captured stderr teardown ---------------------------
+INFO:app.main:Uygulama kapatılıyor...
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:37 Uygulama kapatılıyor...
+__________________________ test_get_nonexistent_user ___________________________
+
+    def get_db():
+        """
+        TR: Her istek için veritabanı oturumu sağlar.
+        EN: Provides a database session per request.
+        """
+        db = SessionLocal()
+        try:
+>           yield db
+
+routes.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py:27: in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:302: in app
+    raw_response = await run_endpoint_function(
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:213: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+user_id = 9999999
+db = sessionmaker(class_='Session', autocommit=False, bind=Engine(sqlite:///./test.db), autoflush=False, expire_on_commit=True)
+user_auth = {'id': 1, 'user': 'test_user'}
+
+    @router.get(
+        "/users/{user_id}",
+        response_model=schemas.UserRead,
+        summary="Kullanıcı detay / User detail",
+        responses={
+            200: {"description": "Kullanıcı ve siparişleri / User and their orders."},
+            404: {"description": "Kullanıcı bulunamadı / User not found."},
+            401: {"description": "Yetkisiz / Unauthorized"},
+        },
+    )
+    async def get_user(
+        user_id: int,
+        db: Session = Depends(get_db),
+        user_auth=Depends(get_current_user),
+    ):
+        """
+        TR: Kullanıcıyı ve siparişlerini getirir.
+        EN: Returns user and their orders.
+        """
+>       user = db.query(models.User).filter(models.User.id == user_id).first()
+               ^^^^^^^^
+E       AttributeError: 'sessionmaker' object has no attribute 'query'
+
+routes.py:152: AttributeError
+
+During handling of the above exception, another exception occurred:
+
+client = <starlette.testclient.TestClient object at 0x7f32ca5f0ed0>
+auth_headers = {'Authorization': '***'}
+
+    def test_get_nonexistent_user(client, auth_headers):
+        print("[TEST] test_get_nonexistent_user")
+>       response = client.get("/api/v1/users/9999999", headers=auth_headers)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_users.py:73: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:479: in get
+    return super().get(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1053: in get
+    return self.request(
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:451: in request
+    return super().request(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:354: in handle_request
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:290: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:221: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:736: in app
+    await route.handle(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:290: in handle
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:78: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:75: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:291: in app
+    async with AsyncExitStack() as async_exit_stack:
+/usr/local/lib/python3.11/contextlib.py:745: in __aexit__
+    raise exc_details[1]
+/usr/local/lib/python3.11/contextlib.py:728: in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:231: in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py:30: in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:2470: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:967: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:158: in __exit__
+    self.gen.throw(typ, value, traceback)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def get_db():
+        """
+        TR: Her istek için veritabanı oturumu sağlar.
+        EN: Provides a database session per request.
+        """
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+>           db.close()
+            ^^^^^^^^
+E           AttributeError: 'sessionmaker' object has no attribute 'close'
+
+routes.py:56: AttributeError
+---------------------------- Captured stderr setup -----------------------------
+INFO:app.main:Uygulama başlatılıyor...
+INFO:app.main:Veritabanı tabloları oluşturuldu.
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:27 Uygulama başlatılıyor...
+INFO     app.main:main.py:32 Veritabanı tabloları oluşturuldu.
+----------------------------- Captured stdout call -----------------------------
+[TEST] test_get_nonexistent_user
+----------------------------- Captured stderr call -----------------------------
+ERROR:app.main:Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/app/routes.py", line 54, in get_db
+    yield db
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/routes.py", line 152, in get_user
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+           ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'query'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 231, in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 30, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+------------------------------ Captured log call -------------------------------
+ERROR    app.main:main.py:123 Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/app/routes.py", line 54, in get_db
+    yield db
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/routes.py", line 152, in get_user
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+           ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'query'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 231, in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 30, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+--------------------------- Captured stderr teardown ---------------------------
+INFO:app.main:Uygulama kapatılıyor...
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:37 Uygulama kapatılıyor...
+_______________________________ test_list_users ________________________________
+
+    def get_db():
+        """
+        TR: Her istek için veritabanı oturumu sağlar.
+        EN: Provides a database session per request.
+        """
+        db = SessionLocal()
+        try:
+>           yield db
+
+routes.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py:27: in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:302: in app
+    raw_response = await run_endpoint_function(
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:213: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = sessionmaker(class_='Session', autocommit=False, bind=Engine(sqlite:///./test.db), autoflush=False, expire_on_commit=True)
+user_auth = {'id': 1, 'user': 'test_user'}
+
+    @router.get(
+        "/users/",
+        response_model=List[schemas.UserRead],
+        summary="Kullanıcıları listele / List users",
+        responses={
+            200: {"description": "Kullanıcı listesi / List of users."},
+            401: {"description": "Yetkisiz / Unauthorized"},
+        },
+    )
+    async def list_users(
+        db: Session = Depends(get_db), user_auth=Depends(get_current_user)
+    ):
+        """
+        TR: Tüm kullanıcıları listeler.
+        EN: Lists all users.
+        """
+>       return db.query(models.User).all()
+               ^^^^^^^^
+E       AttributeError: 'sessionmaker' object has no attribute 'query'
+
+routes.py:130: AttributeError
+
+During handling of the above exception, another exception occurred:
+
+client = <starlette.testclient.TestClient object at 0x7f32ca6ac650>
+auth_headers = {'Authorization': '***'}
+
+    def test_list_users(client, auth_headers):
+        print("[TEST] test_list_users")
+>       response = client.get("/api/v1/users/", headers=auth_headers)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_users.py:80: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:479: in get
+    return super().get(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1053: in get
+    return self.request(
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:451: in request
+    return super().request(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:354: in handle_request
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:290: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:221: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:736: in app
+    await route.handle(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:290: in handle
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:78: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:75: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:291: in app
+    async with AsyncExitStack() as async_exit_stack:
+/usr/local/lib/python3.11/contextlib.py:745: in __aexit__
+    raise exc_details[1]
+/usr/local/lib/python3.11/contextlib.py:728: in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:231: in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py:30: in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:2470: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:967: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:158: in __exit__
+    self.gen.throw(typ, value, traceback)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def get_db():
+        """
+        TR: Her istek için veritabanı oturumu sağlar.
+        EN: Provides a database session per request.
+        """
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+>           db.close()
+            ^^^^^^^^
+E           AttributeError: 'sessionmaker' object has no attribute 'close'
+
+routes.py:56: AttributeError
+---------------------------- Captured stderr setup -----------------------------
+INFO:app.main:Uygulama başlatılıyor...
+INFO:app.main:Veritabanı tabloları oluşturuldu.
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:27 Uygulama başlatılıyor...
+INFO     app.main:main.py:32 Veritabanı tabloları oluşturuldu.
+----------------------------- Captured stdout call -----------------------------
+[TEST] test_list_users
+----------------------------- Captured stderr call -----------------------------
+ERROR:app.main:Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/app/routes.py", line 54, in get_db
+    yield db
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/routes.py", line 130, in list_users
+    return db.query(models.User).all()
+           ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'query'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 231, in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 30, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+------------------------------ Captured log call -------------------------------
+ERROR    app.main:main.py:123 Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/app/routes.py", line 54, in get_db
+    yield db
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/routes.py", line 130, in list_users
+    return db.query(models.User).all()
+           ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'query'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 231, in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 30, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+--------------------------- Captured stderr teardown ---------------------------
+INFO:app.main:Uygulama kapatılıyor...
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:37 Uygulama kapatılıyor...
+________________________________ test_get_user _________________________________
+
+    def get_db():
+        """
+        TR: Her istek için veritabanı oturumu sağlar.
+        EN: Provides a database session per request.
+        """
+        db = SessionLocal()
+        try:
+>           yield db
+
+routes.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py:27: in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:302: in app
+    raw_response = await run_endpoint_function(
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:213: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+user = UserCreate(name='Detail User', email='test-b0bea3bb-42d1-483b-b64b-2a1a2eae3305@example.com', role='customer', is_active=True, password='test123')
+db = sessionmaker(class_='Session', autocommit=False, bind=Engine(sqlite:///./test.db), autoflush=False, expire_on_commit=True)
+user_auth = {'id': 1, 'user': 'test_user'}
+
+    @router.post(
+        "/users/",
+        response_model=schemas.UserRead,
+        status_code=status.HTTP_201_CREATED,
+        summary="Kullanıcı oluştur / Create user",
+        responses={
+            201: {
+                "description": "Kullanıcı başarıyla oluşturuldu / "
+                "User created successfully."
+            },
+            400: {
+                "description": "E-posta zaten kayıtlı veya geçersiz veri / "
+                "Email already registered or invalid data."
+            },
+            401: {"description": "Yetkisiz / Unauthorized"},
+        },
+    )
+    async def create_user(
+        user: schemas.UserCreate,
+        db: Session = Depends(get_db),
+        user_auth=Depends(get_current_user),
+    ):
+        """
+        TR: Yeni kullanıcı oluşturur. E-posta benzersiz olmalıdır.
+        EN: Creates a new user. Email must be unique.
+        """
+        print(f"[DEBUG] Gelen kullanıcı verisi: {user.model_dump()}")
+>       existing = db.query(models.User).filter(models.User.email == user.email).first()
+                   ^^^^^^^^
+E       AttributeError: 'sessionmaker' object has no attribute 'query'
+
+routes.py:89: AttributeError
+
+During handling of the above exception, another exception occurred:
+
+client = <starlette.testclient.TestClient object at 0x7f32ca3ee0d0>
+auth_headers = {'Authorization': '***'}
+
+    def test_get_user(client, auth_headers):
+        email = unique_email()
+        print(f"[TEST] test_get_user: email={email}")
+>       user_resp = client.post(
+            "/api/v1/users/",
+            json={"name": "Detail User", "email": email, "password": "test123"},
+            headers=auth_headers,
+        )
+
+tests/test_users.py:89: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:552: in post
+    return super().post(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:451: in request
+    return super().request(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:354: in handle_request
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:290: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:221: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:736: in app
+    await route.handle(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:290: in handle
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:78: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:75: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:291: in app
+    async with AsyncExitStack() as async_exit_stack:
+/usr/local/lib/python3.11/contextlib.py:745: in __aexit__
+    raise exc_details[1]
+/usr/local/lib/python3.11/contextlib.py:728: in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:231: in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py:30: in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:2470: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:967: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:158: in __exit__
+    self.gen.throw(typ, value, traceback)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def get_db():
+        """
+        TR: Her istek için veritabanı oturumu sağlar.
+        EN: Provides a database session per request.
+        """
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+>           db.close()
+            ^^^^^^^^
+E           AttributeError: 'sessionmaker' object has no attribute 'close'
+
+routes.py:56: AttributeError
+---------------------------- Captured stderr setup -----------------------------
+INFO:app.main:Uygulama başlatılıyor...
+INFO:app.main:Veritabanı tabloları oluşturuldu.
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:27 Uygulama başlatılıyor...
+INFO     app.main:main.py:32 Veritabanı tabloları oluşturuldu.
+----------------------------- Captured stdout call -----------------------------
+[TEST] test_get_user: email=test-b0bea3bb-42d1-483b-b64b-2a1a2eae3305@example.com
+[DEBUG] Gelen kullanıcı verisi: {'name': 'Detail User', 'email': 'test-b0bea3bb-42d1-483b-b64b-2a1a2eae3305@example.com', 'role': 'customer', 'is_active': True, 'password': 'test123'}
+----------------------------- Captured stderr call -----------------------------
+ERROR:app.main:Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/app/routes.py", line 54, in get_db
+    yield db
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/routes.py", line 89, in create_user
+    existing = db.query(models.User).filter(models.User.email == user.email).first()
+               ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'query'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 231, in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 30, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+------------------------------ Captured log call -------------------------------
+ERROR    app.main:main.py:123 Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/app/routes.py", line 54, in get_db
+    yield db
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/routes.py", line 89, in create_user
+    existing = db.query(models.User).filter(models.User.email == user.email).first()
+               ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'query'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 231, in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 30, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+--------------------------- Captured stderr teardown ---------------------------
+INFO:app.main:Uygulama kapatılıyor...
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:37 Uygulama kapatılıyor...
+_______________________________ test_update_user _______________________________
+
+    def get_db():
+        """
+        TR: Her istek için veritabanı oturumu sağlar.
+        EN: Provides a database session per request.
+        """
+        db = SessionLocal()
+        try:
+>           yield db
+
+routes.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py:27: in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:302: in app
+    raw_response = await run_endpoint_function(
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:213: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+user = UserCreate(name='Update User', email='test-6112a079-cc23-4eb1-be06-f0adbf4ea4b2@example.com', role='customer', is_active=True, password='test123')
+db = sessionmaker(class_='Session', autocommit=False, bind=Engine(sqlite:///./test.db), autoflush=False, expire_on_commit=True)
+user_auth = {'id': 1, 'user': 'test_user'}
+
+    @router.post(
+        "/users/",
+        response_model=schemas.UserRead,
+        status_code=status.HTTP_201_CREATED,
+        summary="Kullanıcı oluştur / Create user",
+        responses={
+            201: {
+                "description": "Kullanıcı başarıyla oluşturuldu / "
+                "User created successfully."
+            },
+            400: {
+                "description": "E-posta zaten kayıtlı veya geçersiz veri / "
+                "Email already registered or invalid data."
+            },
+            401: {"description": "Yetkisiz / Unauthorized"},
+        },
+    )
+    async def create_user(
+        user: schemas.UserCreate,
+        db: Session = Depends(get_db),
+        user_auth=Depends(get_current_user),
+    ):
+        """
+        TR: Yeni kullanıcı oluşturur. E-posta benzersiz olmalıdır.
+        EN: Creates a new user. Email must be unique.
+        """
+        print(f"[DEBUG] Gelen kullanıcı verisi: {user.model_dump()}")
+>       existing = db.query(models.User).filter(models.User.email == user.email).first()
+                   ^^^^^^^^
+E       AttributeError: 'sessionmaker' object has no attribute 'query'
+
+routes.py:89: AttributeError
+
+During handling of the above exception, another exception occurred:
+
+client = <starlette.testclient.TestClient object at 0x7f32ca978c90>
+auth_headers = {'Authorization': '***'}
+
+    def test_update_user(client, auth_headers):
+        email = unique_email()
+        print(f"[TEST] test_update_user: email={email}")
+>       user_resp = client.post(
+            "/api/v1/users/",
+            json={"name": "Update User", "email": email, "password": "test123"},
+            headers=auth_headers,
+        )
+
+tests/test_users.py:105: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:552: in post
+    return super().post(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:451: in request
+    return super().request(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:354: in handle_request
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:290: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:221: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:736: in app
+    await route.handle(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:290: in handle
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:78: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:75: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:291: in app
+    async with AsyncExitStack() as async_exit_stack:
+/usr/local/lib/python3.11/contextlib.py:745: in __aexit__
+    raise exc_details[1]
+/usr/local/lib/python3.11/contextlib.py:728: in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:231: in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py:30: in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:2470: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:967: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:158: in __exit__
+    self.gen.throw(typ, value, traceback)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def get_db():
+        """
+        TR: Her istek için veritabanı oturumu sağlar.
+        EN: Provides a database session per request.
+        """
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+>           db.close()
+            ^^^^^^^^
+E           AttributeError: 'sessionmaker' object has no attribute 'close'
+
+routes.py:56: AttributeError
+---------------------------- Captured stderr setup -----------------------------
+INFO:app.main:Uygulama başlatılıyor...
+INFO:app.main:Veritabanı tabloları oluşturuldu.
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:27 Uygulama başlatılıyor...
+INFO     app.main:main.py:32 Veritabanı tabloları oluşturuldu.
+----------------------------- Captured stdout call -----------------------------
+[TEST] test_update_user: email=test-6112a079-cc23-4eb1-be06-f0adbf4ea4b2@example.com
+[DEBUG] Gelen kullanıcı verisi: {'name': 'Update User', 'email': 'test-6112a079-cc23-4eb1-be06-f0adbf4ea4b2@example.com', 'role': 'customer', 'is_active': True, 'password': 'test123'}
+----------------------------- Captured stderr call -----------------------------
+ERROR:app.main:Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/app/routes.py", line 54, in get_db
+    yield db
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/routes.py", line 89, in create_user
+    existing = db.query(models.User).filter(models.User.email == user.email).first()
+               ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'query'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 231, in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 30, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+------------------------------ Captured log call -------------------------------
+ERROR    app.main:main.py:123 Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/app/routes.py", line 54, in get_db
+    yield db
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/routes.py", line 89, in create_user
+    existing = db.query(models.User).filter(models.User.email == user.email).first()
+               ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'query'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 231, in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 30, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+--------------------------- Captured stderr teardown ---------------------------
+INFO:app.main:Uygulama kapatılıyor...
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:37 Uygulama kapatılıyor...
+_______________________________ test_delete_user _______________________________
+
+    def get_db():
+        """
+        TR: Her istek için veritabanı oturumu sağlar.
+        EN: Provides a database session per request.
+        """
+        db = SessionLocal()
+        try:
+>           yield db
+
+routes.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py:27: in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:302: in app
+    raw_response = await run_endpoint_function(
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:213: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+user = UserCreate(name='Delete User', email='test-d52dc904-3bb4-4865-9ab7-53b96d527943@example.com', role='customer', is_active=True, password='test123')
+db = sessionmaker(class_='Session', autocommit=False, bind=Engine(sqlite:///./test.db), autoflush=False, expire_on_commit=True)
+user_auth = {'id': 1, 'user': 'test_user'}
+
+    @router.post(
+        "/users/",
+        response_model=schemas.UserRead,
+        status_code=status.HTTP_201_CREATED,
+        summary="Kullanıcı oluştur / Create user",
+        responses={
+            201: {
+                "description": "Kullanıcı başarıyla oluşturuldu / "
+                "User created successfully."
+            },
+            400: {
+                "description": "E-posta zaten kayıtlı veya geçersiz veri / "
+                "Email already registered or invalid data."
+            },
+            401: {"description": "Yetkisiz / Unauthorized"},
+        },
+    )
+    async def create_user(
+        user: schemas.UserCreate,
+        db: Session = Depends(get_db),
+        user_auth=Depends(get_current_user),
+    ):
+        """
+        TR: Yeni kullanıcı oluşturur. E-posta benzersiz olmalıdır.
+        EN: Creates a new user. Email must be unique.
+        """
+        print(f"[DEBUG] Gelen kullanıcı verisi: {user.model_dump()}")
+>       existing = db.query(models.User).filter(models.User.email == user.email).first()
+                   ^^^^^^^^
+E       AttributeError: 'sessionmaker' object has no attribute 'query'
+
+routes.py:89: AttributeError
+
+During handling of the above exception, another exception occurred:
+
+client = <starlette.testclient.TestClient object at 0x7f32ca698450>
+auth_headers = {'Authorization': '***'}
+
+    def test_delete_user(client, auth_headers):
+        email = unique_email()
+        print(f"[TEST] test_delete_user: email={email}")
+>       user_resp = client.post(
+            "/api/v1/users/",
+            json={"name": "Delete User", "email": email, "password": "test123"},
+            headers=auth_headers,
+        )
+
+tests/test_users.py:127: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:552: in post
+    return super().post(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:451: in request
+    return super().request(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:354: in handle_request
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:290: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/usr/local/lib/python3.11/site-packages/anyio/from_thread.py:221: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:736: in app
+    await route.handle(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:290: in handle
+    await self.app(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:78: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+/usr/local/lib/python3.11/site-packages/starlette/routing.py:75: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/fastapi/routing.py:291: in app
+    async with AsyncExitStack() as async_exit_stack:
+/usr/local/lib/python3.11/contextlib.py:745: in __aexit__
+    raise exc_details[1]
+/usr/local/lib/python3.11/contextlib.py:728: in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:231: in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py:30: in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:2470: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py:967: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/contextlib.py:158: in __exit__
+    self.gen.throw(typ, value, traceback)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def get_db():
+        """
+        TR: Her istek için veritabanı oturumu sağlar.
+        EN: Provides a database session per request.
+        """
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+>           db.close()
+            ^^^^^^^^
+E           AttributeError: 'sessionmaker' object has no attribute 'close'
+
+routes.py:56: AttributeError
+---------------------------- Captured stderr setup -----------------------------
+INFO:app.main:Uygulama başlatılıyor...
+INFO:app.main:Veritabanı tabloları oluşturuldu.
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:27 Uygulama başlatılıyor...
+INFO     app.main:main.py:32 Veritabanı tabloları oluşturuldu.
+----------------------------- Captured stdout call -----------------------------
+[TEST] test_delete_user: email=test-d52dc904-3bb4-4865-9ab7-53b96d527943@example.com
+[DEBUG] Gelen kullanıcı verisi: {'name': 'Delete User', 'email': 'test-d52dc904-3bb4-4865-9ab7-53b96d527943@example.com', 'role': 'customer', 'is_active': True, 'password': 'test123'}
+----------------------------- Captured stderr call -----------------------------
+ERROR:app.main:Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/app/routes.py", line 54, in get_db
+    yield db
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/routes.py", line 89, in create_user
+    existing = db.query(models.User).filter(models.User.email == user.email).first()
+               ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'query'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 231, in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 30, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+------------------------------ Captured log call -------------------------------
+ERROR    app.main:main.py:123 Unexpected Error: 'sessionmaker' object has no attribute 'close'
+Traceback (most recent call last):
+  File "/app/routes.py", line 54, in get_db
+    yield db
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/routes.py", line 89, in create_user
+    existing = db.query(models.User).filter(models.User.email == user.email).first()
+               ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'query'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 291, in app
+    async with AsyncExitStack() as async_exit_stack:
+  File "/usr/local/lib/python3.11/contextlib.py", line 745, in __aexit__
+    raise exc_details[1]
+  File "/usr/local/lib/python3.11/contextlib.py", line 728, in __aexit__
+    cb_suppress = await cb(*exc_details)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 231, in __aexit__
+    await self.gen.athrow(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/concurrency.py", line 30, in contextmanager_in_threadpool
+    await anyio.to_thread.run_sync(
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/app/routes.py", line 56, in get_db
+    db.close()
+    ^^^^^^^^
+AttributeError: 'sessionmaker' object has no attribute 'close'
+--------------------------- Captured stderr teardown ---------------------------
+INFO:app.main:Uygulama kapatılıyor...
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:37 Uygulama kapatılıyor...
+=============================== warnings summary ===============================
+database.py:77
+  /app/database.py:77: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_users.py::test_create_user - AttributeError: 'sessionmaker'...
+FAILED tests/test_users.py::test_create_user_missing_field - AttributeError: ...
+FAILED tests/test_users.py::test_create_user_invalid_email - AttributeError: ...
+FAILED tests/test_users.py::test_create_user_duplicate_email - AttributeError...
+FAILED tests/test_users.py::test_get_nonexistent_user - AttributeError: 'sess...
+FAILED tests/test_users.py::test_list_users - AttributeError: 'sessionmaker' ...
+FAILED tests/test_users.py::test_get_user - AttributeError: 'sessionmaker' ob...
+FAILED tests/test_users.py::test_update_user - AttributeError: 'sessionmaker'...
+FAILED tests/test_users.py::test_delete_user - AttributeError: 'sessionmaker'...
+========================= 9 failed, 1 warning in 2.52s =========================
+Error: Process completed with exit code 1.

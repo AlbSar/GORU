@@ -49,7 +49,8 @@ def get_db():
     TR: Her istek için veritabanı oturumu sağlar.
     EN: Provides a database session per request.
     """
-    db = SessionLocal()
+    SessionLocal_instance = SessionLocal()
+    db = SessionLocal_instance()
     try:
         yield db
     finally:
