@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI):
     import os
 
     is_testing = os.getenv("TESTING") or os.getenv("PYTEST_CURRENT_TEST")
-    
+
     if not settings.USE_MOCK and not is_testing:
         from .database import get_engine
 
