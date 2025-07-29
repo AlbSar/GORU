@@ -41,18 +41,18 @@ class TestUsersWithAuth:
         """ID'ye göre kullanıcı getirme testi."""
         if create_test_user:
             response = client.get(
-                f"/api/v1/users/{create_test_user}", headers=auth_headers
+                f"/api/v1/users/{create_test_user['id']}", headers=auth_headers
             )
             assert response.status_code == 200
             user = response.json()
-            assert user["id"] == create_test_user
+            assert user["id"] == create_test_user["id"]
 
     def test_update_user(self, client, auth_headers, create_test_user):
         """Kullanıcı güncelleme testi."""
         if create_test_user:
             update_data = {"name": "Updated User Name"}
             response = client.put(
-                f"/api/v1/users/{create_test_user}",
+                f"/api/v1/users/{create_test_user['id']}",
                 json=update_data,
                 headers=auth_headers,
             )
@@ -140,12 +140,12 @@ class TestUsersValidation:
 class TestUsersUnauthorized:
     """Yetkilendirme testleri."""
 
-    def test_get_users_without_auth(self, client):
+    def test_get_users_without_auth(self, unauthenticated_client):
         """Yetkilendirme olmadan kullanıcı listesi."""
-        response = client.get("/api/v1/users/")
-        assert response.status_code == 403
+        response = unauthenticated_client.get("/api/v1/users/")
+        assert response.status_code == 401  # Missing token = 401
 
-    def test_create_user_without_auth(self, client):
+    def test_create_user_without_auth(self, unauthenticated_client):
         """Yetkilendirme olmadan kullanıcı oluşturma."""
         user_data = {
             "name": "Test User",
@@ -154,15 +154,15 @@ class TestUsersUnauthorized:
             "is_active": True,
             "password": "test123",
         }
-        response = client.post("/api/v1/users/", json=user_data)
-        assert response.status_code == 403
+        response = unauthenticated_client.post("/api/v1/users/", json=user_data)
+        assert response.status_code == 401  # Missing token = 401
 
-    def test_update_user_without_auth(self, client):
+    def test_update_user_without_auth(self, unauthenticated_client):
         """Yetkilendirme olmadan kullanıcı güncelleme."""
-        response = client.put("/api/v1/users/1", json={"name": "Updated"})
-        assert response.status_code == 403
+        response = unauthenticated_client.put("/api/v1/users/1", json={"name": "Updated"})
+        assert response.status_code == 401  # Missing token = 401
 
-    def test_delete_user_without_auth(self, client):
+    def test_delete_user_without_auth(self, unauthenticated_client):
         """Yetkilendirme olmadan kullanıcı silme."""
-        response = client.delete("/api/v1/users/1")
-        assert response.status_code == 403
+        response = unauthenticated_client.delete("/api/v1/users/1")
+        assert response.status_code == 401  # Missing token = 401

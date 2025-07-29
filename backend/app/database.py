@@ -22,13 +22,26 @@ def get_database_url():
     """Database URL'ini lazy olarak döndürür."""
     global _database_url
     if _database_url is None:
-        # Environment variable'dan DATABASE_URL al, yoksa settings'den al
-        env_database_url = os.getenv("DATABASE_URL")
-        if env_database_url:
-            _database_url = env_database_url
+        # Environment'a göre database seç
+        environment = os.getenv("ENVIRONMENT", "development")
+        
+        if environment == "test" or os.getenv("TESTING") or os.getenv("PYTEST_CURRENT_TEST"):
+            # Test ortamında SQLite
+            _database_url = "sqlite:///./test.db"
+        elif environment == "development":
+            # Development ortamında SQLite (hızlı geliştirme için)
+            _database_url = "sqlite:///./dev.db"
+        elif environment == "production":
+            # Production'da PostgreSQL
+            env_database_url = os.getenv("DATABASE_URL")
+            if env_database_url:
+                _database_url = env_database_url
+            else:
+                _database_url = settings.DATABASE_URL
         else:
-            # Her durumda PostgreSQL kullan
+            # Default olarak settings'den al
             _database_url = settings.DATABASE_URL
+            
     return _database_url
 
 
@@ -83,8 +96,7 @@ def get_db():
     Database session dependency.
     FastAPI dependency injection için kullanılır.
     """
-    SessionLocal_instance = SessionLocal()
-    db = SessionLocal_instance()
+    db = SessionLocal()
     try:
         yield db
     finally:

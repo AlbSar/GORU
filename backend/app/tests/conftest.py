@@ -3,6 +3,7 @@ Pytest fixtures ve test konfigürasyonu.
 Tüm testlerde kullanılacak ortak fixture'lar ve helper fonksiyonlar.
 """
 
+import os
 import uuid
 from unittest.mock import patch
 
@@ -13,8 +14,12 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from ..auth import get_current_user
-from ..database import Base, get_db
 from ..main import app
+from ..models import Base  # Models dosyasındaki Base'i kullan
+
+# Test ortamını ayarla
+os.environ["TESTING"] = "1"
+os.environ["PYTEST_CURRENT_TEST"] = "test_session"
 
 # Test için in-memory SQLite database
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
@@ -38,22 +43,90 @@ def override_get_db():
 
 def override_get_current_user():
     """Test için auth override - her zaman geçerli kullanıcı döndür."""
-    return {"user": "test_user", "id": 1}
+    return {
+        "user": "test_user",
+        "id": 1,
+        "role": "admin",
+        "permissions": ["read", "write", "delete", "admin"],
+    }
+
+
+@pytest.fixture
+def mock_auth_bypass():
+    """Auth bypass için mock fixture."""
+    with patch("app.auth.get_current_user") as mock_auth:
+        mock_auth.return_value = {
+            "user": "test_user",
+            "id": 1,
+            "role": "admin",
+            "permissions": ["read", "write", "delete", "admin"],
+        }
+        yield mock_auth
+
+
+@pytest.fixture
+def mock_auth_failure():
+    """Auth failure mock fixture."""
+    with patch("app.auth.get_current_user", side_effect=Exception("Auth failed")):
+        yield
+
+
+@pytest.fixture
+def mock_auth_unauthorized():
+    """Auth unauthorized mock fixture."""
+    with patch("app.auth.get_current_user") as mock_auth:
+        from fastapi import HTTPException, status
+
+        mock_auth.side_effect = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="Invalid token"
+        )
+        yield mock_auth
+
+
+@pytest.fixture
+def mock_auth_forbidden():
+    """Auth forbidden mock fixture."""
+    with patch("app.auth.get_current_user") as mock_auth:
+        from fastapi import HTTPException, status
+
+        mock_auth.side_effect = HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="Insufficient permissions"
+        )
+        yield mock_auth
 
 
 @pytest.fixture(scope="session")
 def test_db():
     """Test veritabanı oluştur."""
+    # Test ortamında tabloları oluştur
     Base.metadata.create_all(bind=engine)
     yield
+    # Test sonunda tabloları temizle
     Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture
 def client(test_db):
-    """Test client fixture."""
-    app.dependency_overrides[get_db] = override_get_db
+    """Test client fixture with auth bypass."""
+    # Routes dosyasındaki get_db'yi override et
+    from ..routes import get_db as routes_get_db
+
+    app.dependency_overrides[routes_get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
+    with TestClient(app) as c:
+        yield c
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def unauthenticated_client(test_db):
+    """Test client fixture without auth bypass."""
+    # Sadece DB override yap, auth override yapma
+    from ..routes import get_db as routes_get_db
+
+    app.dependency_overrides[routes_get_db] = override_get_db
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
@@ -130,7 +203,7 @@ def authenticated_client(client, auth_headers):
 
 @pytest.fixture
 def create_test_user(client, auth_headers, unique_email):
-    """Test kullanıcısı oluştur ve ID'sini döndür."""
+    """Test kullanıcısı oluştur ve user object'ini döndür."""
     user_data = {
         "name": "Fixture Test User",
         "email": unique_email,
@@ -138,13 +211,13 @@ def create_test_user(client, auth_headers, unique_email):
     }
     response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
     if response.status_code == 201:
-        return response.json()["id"]
+        return response.json()  # Tüm user object'ini döndür
     return None
 
 
 @pytest.fixture
 def create_test_stock(client, auth_headers, unique_product):
-    """Test stoku oluştur ve ID'sini döndür."""
+    """Test stoku oluştur ve stock object'ini döndür."""
     stock_data = {
         "product_name": unique_product,
         "quantity": 50,
@@ -152,38 +225,24 @@ def create_test_stock(client, auth_headers, unique_product):
     }
     response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
     if response.status_code == 201:
-        return response.json()["id"]
+        return response.json()  # Tüm stock object'ini döndür
     return None
 
 
 @pytest.fixture
 def create_test_order(client, auth_headers, create_test_user, unique_product):
-    """Test siparişi oluştur ve ID'sini döndür."""
-    user_id = create_test_user
-    if user_id:
+    """Test siparişi oluştur ve order object'ini döndür."""
+    user_obj = create_test_user
+    if user_obj:
         order_data = {
-            "user_id": user_id,
+            "user_id": user_obj["id"],  # user object'inden id al
             "product_name": unique_product,
             "amount": 100.0,
         }
         response = client.post("/api/v1/orders/", json=order_data, headers=auth_headers)
         if response.status_code == 201:
-            return response.json()["id"]
+            return response.json()  # Tüm order object'ini döndür
     return None
-
-
-@pytest.fixture
-def mock_auth_failure():
-    """Auth failure mock fixture."""
-    with patch("app.auth.get_current_user", side_effect=Exception("Auth failed")):
-        yield
-
-
-@pytest.fixture
-def mock_database_error():
-    """Database error mock fixture."""
-    with patch("app.routes.SessionLocal", side_effect=Exception("Database error")):
-        yield
 
 
 def pytest_configure(config):

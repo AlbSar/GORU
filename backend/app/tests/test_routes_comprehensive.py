@@ -69,12 +69,13 @@ class TestUserRoutesCRUD:
     def test_get_user_by_id_success(self, client, auth_headers, create_test_user):
         """Başarılı kullanıcı getirme testi."""
         if create_test_user:
+            user_id = create_test_user["id"]  # user object'inden id al
             response = client.get(
-                f"/api/v1/users/{create_test_user}", headers=auth_headers
+                f"/api/v1/users/{user_id}", headers=auth_headers
             )
             assert response.status_code == 200
             data = response.json()
-            assert data["id"] == create_test_user
+            assert data["id"] == user_id
             assert "password_hash" not in data  # Password hash expose edilmemeli
 
     def test_get_user_by_id_not_found(self, client, auth_headers):
@@ -87,9 +88,10 @@ class TestUserRoutesCRUD:
     def test_update_user_success(self, client, auth_headers, create_test_user):
         """Başarılı kullanıcı güncelleme testi."""
         if create_test_user:
+            user_id = create_test_user["id"]  # user object'inden id al
             update_data = {"name": "Updated Name", "role": "admin"}
             response = client.put(
-                f"/api/v1/users/{create_test_user}",
+                f"/api/v1/users/{user_id}",
                 json=update_data,
                 headers=auth_headers,
             )

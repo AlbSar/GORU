@@ -40,18 +40,18 @@ class TestStocksWithAuth:
         """ID'ye göre stok getirme testi."""
         if create_test_stock:
             response = client.get(
-                f"/api/v1/stocks/{create_test_stock}", headers=auth_headers
+                f"/api/v1/stocks/{create_test_stock['id']}", headers=auth_headers
             )
             assert response.status_code == 200
             stock = response.json()
-            assert stock["id"] == create_test_stock
+            assert stock["id"] == create_test_stock["id"]
 
     def test_update_stock(self, client, auth_headers, create_test_stock):
         """Stok güncelleme testi."""
         if create_test_stock:
             update_data = {"quantity": 200}
             response = client.put(
-                f"/api/v1/stocks/{create_test_stock}",
+                f"/api/v1/stocks/{create_test_stock['id']}",
                 json=update_data,
                 headers=auth_headers,
             )
@@ -128,12 +128,12 @@ class TestStocksValidation:
 class TestStocksUnauthorized:
     """Yetkilendirme testleri."""
 
-    def test_get_stocks_without_auth(self, client):
+    def test_get_stocks_without_auth(self, unauthenticated_client):
         """Yetkilendirme olmadan stok listesi."""
-        response = client.get("/api/v1/stocks/")
-        assert response.status_code == 403
+        response = unauthenticated_client.get("/api/v1/stocks/")
+        assert response.status_code == 401
 
-    def test_create_stock_without_auth(self, client):
+    def test_create_stock_without_auth(self, unauthenticated_client):
         """Yetkilendirme olmadan stok oluşturma."""
         stock_data = {
             "product_name": "Test Stock",
@@ -141,5 +141,5 @@ class TestStocksUnauthorized:
             "unit_price": 25.99,
             "supplier": "Test Supplier",
         }
-        response = client.post("/api/v1/stocks/", json=stock_data)
-        assert response.status_code == 403
+        response = unauthenticated_client.post("/api/v1/stocks/", json=stock_data)
+        assert response.status_code == 401

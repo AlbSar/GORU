@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     # Database Configuration
     DATABASE_URL: str = "postgresql://goru:goru@localhost:5432/goru_db"
     TEST_DATABASE_URL: str = "postgresql://goru:goru@localhost:5432/goru_test_db"
+    DEV_DATABASE_URL: str = "sqlite:///./dev.db"
+    TEST_SQLITE_URL: str = "sqlite:///./test.db"
 
     # Application Configuration
     DEBUG: bool = True
@@ -34,6 +36,7 @@ class Settings(BaseSettings):
 
     # Environment Configuration
     APP_ENV: str = "development"
+    ENVIRONMENT: str = "development"  # test, development, production
     LOG_LEVEL: str = "debug"
 
     # Mock sistem ayarları

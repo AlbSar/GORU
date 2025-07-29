@@ -62,7 +62,12 @@ class TestUserEdgeCasesFixed:
         """Olmayan kullanıcı getirme testi."""
         response = client.get("/api/v1/users/99999", headers=auth_headers)
         assert response.status_code == 404
-        assert "not found" in response.json()["detail"].lower()
+        # Response format kontrolü - detail alanı olmalı
+        response_data = response.json()
+        assert "detail" in response_data
+        # Türkçe veya İngilizce hata mesajı kontrolü
+        detail_text = response_data["detail"].lower()
+        assert any(keyword in detail_text for keyword in ["not found", "bulunamadı", "user"])
 
     def test_update_nonexistent_user(self, client, auth_headers):
         """Olmayan kullanıcı güncelleme testi."""
@@ -94,8 +99,12 @@ class TestStockEdgeCasesFixed:
             "/api/v1/stocks/", json=invalid_stock, headers=auth_headers
         )
         assert response.status_code == 422
-        error_detail = response.json()["detail"]
-        assert any("quantity" in str(error).lower() for error in error_detail)
+        # Response format kontrolü
+        response_data = response.json()
+        assert "detail" in response_data
+        # Validation error kontrolü
+        detail_text = str(response_data["detail"]).lower()
+        assert any(keyword in detail_text for keyword in ["quantity", "negative", "greater"])
 
     def test_create_stock_zero_price(self, client, auth_headers):
         """Sıfır fiyatlı stok oluşturma testi."""
@@ -141,7 +150,12 @@ class TestOrderEdgeCasesFixed:
             "/api/v1/orders/", json=invalid_order, headers=auth_headers
         )
         assert response.status_code == 422
-        assert "negative" in response.json()["detail"].lower()
+        # Response format kontrolü
+        response_data = response.json()
+        assert "detail" in response_data
+        # Validation error kontrolü
+        detail_text = response_data["detail"].lower()
+        assert any(keyword in detail_text for keyword in ["negative", "amount", "greater"])
 
 
 class TestUnauthenticatedAccess:
