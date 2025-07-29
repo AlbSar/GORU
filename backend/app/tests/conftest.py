@@ -78,8 +78,7 @@ def mock_auth_unauthorized():
         from fastapi import HTTPException, status
 
         mock_auth.side_effect = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
-            detail="Invalid token"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
         )
         yield mock_auth
 
@@ -91,8 +90,7 @@ def mock_auth_forbidden():
         from fastapi import HTTPException, status
 
         mock_auth.side_effect = HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
-            detail="Insufficient permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
         )
         yield mock_auth
 

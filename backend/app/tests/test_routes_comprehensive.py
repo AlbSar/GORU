@@ -70,9 +70,7 @@ class TestUserRoutesCRUD:
         """Başarılı kullanıcı getirme testi."""
         if create_test_user:
             user_id = create_test_user["id"]  # user object'inden id al
-            response = client.get(
-                f"/api/v1/users/{user_id}", headers=auth_headers
-            )
+            response = client.get(f"/api/v1/users/{user_id}", headers=auth_headers)
             assert response.status_code == 200
             data = response.json()
             assert data["id"] == user_id

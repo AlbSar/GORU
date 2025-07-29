@@ -24,8 +24,12 @@ def get_database_url():
     if _database_url is None:
         # Environment'a göre database seç
         environment = os.getenv("ENVIRONMENT", "development")
-        
-        if environment == "test" or os.getenv("TESTING") or os.getenv("PYTEST_CURRENT_TEST"):
+
+        if (
+            environment == "test"
+            or os.getenv("TESTING")
+            or os.getenv("PYTEST_CURRENT_TEST")
+        ):
             # Test ortamında SQLite
             _database_url = "sqlite:///./test.db"
         elif environment == "development":
@@ -41,7 +45,7 @@ def get_database_url():
         else:
             # Default olarak settings'den al
             _database_url = settings.DATABASE_URL
-            
+
     return _database_url
 
 

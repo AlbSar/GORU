@@ -159,7 +159,9 @@ class TestUsersUnauthorized:
 
     def test_update_user_without_auth(self, unauthenticated_client):
         """Yetkilendirme olmadan kullanıcı güncelleme."""
-        response = unauthenticated_client.put("/api/v1/users/1", json={"name": "Updated"})
+        response = unauthenticated_client.put(
+            "/api/v1/users/1", json={"name": "Updated"}
+        )
         assert response.status_code == 401  # Missing token = 401
 
     def test_delete_user_without_auth(self, unauthenticated_client):

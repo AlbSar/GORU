@@ -67,7 +67,9 @@ class TestUserEdgeCasesFixed:
         assert "detail" in response_data
         # Türkçe veya İngilizce hata mesajı kontrolü
         detail_text = response_data["detail"].lower()
-        assert any(keyword in detail_text for keyword in ["not found", "bulunamadı", "user"])
+        assert any(
+            keyword in detail_text for keyword in ["not found", "bulunamadı", "user"]
+        )
 
     def test_update_nonexistent_user(self, client, auth_headers):
         """Olmayan kullanıcı güncelleme testi."""
@@ -104,7 +106,9 @@ class TestStockEdgeCasesFixed:
         assert "detail" in response_data
         # Validation error kontrolü
         detail_text = str(response_data["detail"]).lower()
-        assert any(keyword in detail_text for keyword in ["quantity", "negative", "greater"])
+        assert any(
+            keyword in detail_text for keyword in ["quantity", "negative", "greater"]
+        )
 
     def test_create_stock_zero_price(self, client, auth_headers):
         """Sıfır fiyatlı stok oluşturma testi."""
@@ -155,7 +159,9 @@ class TestOrderEdgeCasesFixed:
         assert "detail" in response_data
         # Validation error kontrolü
         detail_text = response_data["detail"].lower()
-        assert any(keyword in detail_text for keyword in ["negative", "amount", "greater"])
+        assert any(
+            keyword in detail_text for keyword in ["negative", "amount", "greater"]
+        )
 
 
 class TestUnauthenticatedAccess:
