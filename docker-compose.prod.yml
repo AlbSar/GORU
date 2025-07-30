@@ -24,8 +24,10 @@ services:
       resources:
         limits:
           memory: 1G
+          cpus: '1.0'
         reservations:
           memory: 512M
+          cpus: '0.5'
 
   # Backend API Service (Production)
   backend:
@@ -38,6 +40,8 @@ services:
       - DATABASE_URL=postgresql://goru:goru@db:5432/goru_db
       - ENVIRONMENT=production
       - DEBUG=false
+      - LOG_LEVEL=INFO
+      - WORKERS=4
     depends_on:
       db:
         condition: service_healthy
@@ -54,9 +58,20 @@ services:
       resources:
         limits:
           memory: 2G
+          cpus: '2.0'
         reservations:
           memory: 1G
+          cpus: '1.0'
       replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
 
 volumes:
   pgdata_prod:

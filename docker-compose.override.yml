@@ -15,7 +15,6 @@ services:
       - /app/__pycache__
       - /app/.pytest_cache
       - /app/htmlcov
-      - /app/.coverage
     # Development için daha fazla memory
     deploy:
       resources:
