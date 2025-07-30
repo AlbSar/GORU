@@ -8,11 +8,11 @@ import re
 
 def fix_paths():
     """Test dosyasındaki tüm path'leri düzelt."""
-    
+
     # Dosyayı oku
-    with open('app/tests/test_routes_coverage_90.py', 'r', encoding='utf-8') as f:
+    with open("app/tests/test_routes_coverage_90.py", "r", encoding="utf-8") as f:
         content = f.read()
-    
+
     # Path'leri değiştir
     patterns = [
         (r'client\.post\("/users/', 'client.post("/api/v1/users/'),
@@ -28,15 +28,16 @@ def fix_paths():
         (r'client\.put\("/stocks/', 'client.put("/api/v1/stocks/'),
         (r'client\.delete\("/stocks/', 'client.delete("/api/v1/stocks/'),
     ]
-    
+
     for pattern, replacement in patterns:
         content = re.sub(pattern, replacement, content)
-    
+
     # Dosyayı yaz
-    with open('app/tests/test_routes_coverage_90.py', 'w', encoding='utf-8') as f:
+    with open("app/tests/test_routes_coverage_90.py", "w", encoding="utf-8") as f:
         f.write(content)
-    
+
     print("Path'ler başarıyla düzeltildi!")
 
+
 if __name__ == "__main__":
-    fix_paths() 
+    fix_paths()

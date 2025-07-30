@@ -5,20 +5,18 @@ ERP sistemi için stok yönetimi CRUD işlemlerini sağlar.
 
 from typing import List
 
+from app.auth import get_current_user
+from app.models import Stock
+from app.routes.common import get_db
+from app.schemas import StockCreate, StockRead, StockUpdate
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-
-from .. import models
-from ..auth import get_current_user
-from ..models import Stock
-from ..schemas import StockCreate, StockRead, StockUpdate
-from .common import get_db
 
 router = APIRouter()
 
 
 @router.post(
-    "/stocks/",
+    "/",
     response_model=StockRead,
     status_code=status.HTTP_201_CREATED,
     summary="Stok ekle / Create stock",
@@ -43,7 +41,7 @@ def create_stock(
     if db.query(Stock).filter(Stock.product_name == stock.product_name).first():
         raise HTTPException(
             status_code=400,
-            detail="Ürün adı zaten kayıtlı / Product name already exists",
+            detail="Product name already exists",
         )
     db_stock = Stock(**stock.model_dump())
     db.add(db_stock)
@@ -53,7 +51,7 @@ def create_stock(
 
 
 @router.get(
-    "/stocks/",
+    "/",
     response_model=List[StockRead],
     summary="Stokları listele / List stocks",
     responses={
@@ -70,7 +68,7 @@ def list_stocks(db: Session = Depends(get_db), user_auth=Depends(get_current_use
 
 
 @router.get(
-    "/stocks/{id}",
+    "/{id}",
     response_model=StockRead,
     summary="Stok detay / Stock detail",
     responses={
@@ -93,7 +91,7 @@ def get_stock(
 
 
 @router.put(
-    "/stocks/{id}",
+    "/{id}",
     response_model=StockRead,
     summary="Stok güncelle / Update stock",
     responses={
@@ -127,7 +125,7 @@ def update_stock(
     ):
         raise HTTPException(
             status_code=400,
-            detail="Ürün adı zaten kayıtlı / Product name already exists",
+            detail="Product name already exists",
         )
     for key, value in stock.model_dump(exclude_unset=True).items():
         setattr(db_stock, key, value)
@@ -137,7 +135,7 @@ def update_stock(
 
 
 @router.delete(
-    "/stocks/{id}",
+    "/{id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Stok sil / Delete stock",
     responses={

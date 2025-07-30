@@ -3,8 +3,6 @@ Mock endpoint'lerin testleri.
 USE_MOCK=true durumunda mock API endpoint'lerini test eder.
 """
 
-import os
-import uuid
 from unittest.mock import patch
 
 import pytest

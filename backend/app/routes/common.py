@@ -4,17 +4,19 @@ Tüm route modülleri tarafından kullanılan ortak işlevleri içerir.
 """
 
 import os
+from typing import Generator
 
-from fastapi import APIRouter
+from app.database import Base, SessionLocal, get_engine
 from sqlalchemy.orm import Session
 
-from ..database import Base, SessionLocal, get_engine
 
-
-def get_db():
+def get_db() -> Generator[Session, None, None]:
     """
     TR: Her istek için veritabanı oturumu sağlar.
     EN: Provides a database session per request.
+
+    Yields:
+        Session: Veritabanı oturumu
     """
     db = SessionLocal()
     try:

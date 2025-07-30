@@ -5,6 +5,7 @@ Environment variable'lara göre dinamik database yapılandırması.
 
 import os
 
+from fastapi import HTTPException, status
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -91,6 +92,12 @@ def SessionLocal():
     return get_session_local()()
 
 
+# Test ortamı için özel session local
+def TestingSessionLocal():
+    """Test ortamı için özel session local."""
+    return get_session_local()()
+
+
 Base = declarative_base()
 
 
@@ -101,9 +108,21 @@ def get_db():
     """
     db = SessionLocal()
     try:
+        # Connection check
+        db.execute(text("SELECT 1"))
         yield db
+    except Exception as e:
+        print(f"Database connection error: {e}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database connection error",
+        )
     finally:
-        db.close()
+        try:
+            db.close()
+        except Exception as e:
+            print(f"Error closing database connection: {e}")
 
 
 def test_connection():
@@ -121,6 +140,7 @@ def test_connection():
 def create_tables():
     """Tüm tabloları oluşturur."""
     try:
+        engine = get_engine()
         Base.metadata.create_all(bind=engine)
         print("✅ Database tabloları oluşturuldu!")
         return True

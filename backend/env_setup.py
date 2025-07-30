@@ -4,12 +4,11 @@ Environment Setup Script
 .env dosyasını oluşturmak için kullanılır
 """
 
-import os
 
 
 def create_env_file():
     """Settings.py ile uyumlu .env dosyası oluşturur."""
-    
+
     env_content = """# GORU ERP Backend - Environment Variables
 # ======================================
 
@@ -38,12 +37,13 @@ MOCK_API_PREFIX=/mock
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 """
-    
-    with open('../.env', 'w', encoding='utf-8') as f:
+
+    with open("../.env", "w", encoding="utf-8") as f:
         f.write(env_content)
-    
+
     print("✅ Proje kökündeki .env dosyası güncellendi!")
     print("📝 Lütfen DATABASE_URL ve SECRET_KEY değerlerini güncelleyin.")
 
+
 if __name__ == "__main__":
-    create_env_file() 
+    create_env_file()

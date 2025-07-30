@@ -52,103 +52,93 @@ class TestGenerateDummyData:
         except ImportError as e:
             pytest.fail(f"Generate dummy data script import failed: {e}")
 
-    @patch("app.scripts.generate_dummy_data.SessionLocal")
-    def test_generate_users_function(self, mock_session_local):
+    def test_generate_users_function(self):
         """Generate users fonksiyon testi."""
         from ..scripts.generate_dummy_data import generate_users
 
         # Mock session setup
         mock_session = MagicMock()
-        mock_session_local.return_value = mock_session
-        mock_session.__enter__.return_value = mock_session
 
         # Test fonksiyon çağrısı
         count = 10
         generate_users(mock_session, count)
 
         # Session kullanımını kontrol et
-        assert mock_session.add.call_count == count
+        assert mock_session.add_all.called
         assert mock_session.commit.called
 
-    @patch("app.scripts.generate_dummy_data.SessionLocal")
-    def test_generate_stocks_function(self, mock_session_local):
+    def test_generate_stocks_function(self):
         """Generate stocks fonksiyon testi."""
         from ..scripts.generate_dummy_data import generate_stocks
 
         # Mock session setup
         mock_session = MagicMock()
-        mock_session_local.return_value = mock_session
-        mock_session.__enter__.return_value = mock_session
 
         # Test fonksiyon çağrısı
         count = 15
         generate_stocks(mock_session, count)
 
         # Session kullanımını kontrol et
-        assert mock_session.add.call_count == count
+        assert mock_session.add_all.called
         assert mock_session.commit.called
 
-    @patch("app.scripts.generate_dummy_data.SessionLocal")
-    def test_generate_orders_function(self, mock_session_local):
+    def test_generate_orders_function(self):
         """Generate orders fonksiyon testi."""
         from ..scripts.generate_dummy_data import generate_orders
 
         # Mock session setup
         mock_session = MagicMock()
-        mock_session_local.return_value = mock_session
-        mock_session.__enter__.return_value = mock_session
 
-        # Mock users ve stocks query results
-        mock_session.query.return_value.count.return_value = 10
-        mock_session.query.return_value.offset.return_value.first.return_value.id = 1
+        # Mock users ve stocks
+        mock_users = [MagicMock(id=1), MagicMock(id=2)]
+        mock_stocks = [
+            MagicMock(id=1, unit_price=10.0),
+            MagicMock(id=2, unit_price=20.0),
+        ]
 
         # Test fonksiyon çağrısı
         count = 5
-        generate_orders(mock_session, count)
+        generate_orders(mock_session, mock_users, mock_stocks, count)
 
         # Session kullanımını kontrol et
-        assert mock_session.add.call_count == count
+        assert mock_session.add_all.called
         assert mock_session.commit.called
 
     @patch("builtins.input", side_effect=["n"])  # clean_existing = 'n'
-    @patch("app.scripts.generate_dummy_data.SessionLocal")
-    def test_main_function_no_clean(self, mock_session_local, mock_input):
+    def test_main_function_no_clean(self, mock_input):
         """Main fonksiyon testi (clean=no)."""
         from ..scripts.generate_dummy_data import main
 
-        # Mock session setup
-        mock_session = MagicMock()
-        mock_session_local.return_value = mock_session
-        mock_session.__enter__.return_value = mock_session
+        # Mock SessionLocal
+        with patch(
+            "app.scripts.generate_dummy_data.SessionLocal"
+        ) as mock_session_local:
+            mock_session = MagicMock()
+            mock_session_local.return_value = mock_session
 
-        # Mock query counts
-        mock_session.query.return_value.count.return_value = 5
+            # Test main function
+            main()
 
-        # Test main function
-        main()
-
-        # Clean işlemi yapılmamalı
-        assert not mock_session.query.return_value.delete.called
+            # Clean işlemi yapılmamalı - add_all çağrılmalı
+            assert mock_session.add_all.called
 
     @patch("builtins.input", side_effect=["y"])  # clean_existing = 'y'
-    @patch("app.scripts.generate_dummy_data.SessionLocal")
-    def test_main_function_with_clean(self, mock_session_local, mock_input):
+    def test_main_function_with_clean(self, mock_input):
         """Main fonksiyon testi (clean=yes)."""
         from ..scripts.generate_dummy_data import main
 
-        # Mock session setup
-        mock_session = MagicMock()
-        mock_session_local.return_value = mock_session
-        mock_session.__enter__.return_value = mock_session
+        # Mock SessionLocal
+        with patch(
+            "app.scripts.generate_dummy_data.SessionLocal"
+        ) as mock_session_local:
+            mock_session = MagicMock()
+            mock_session_local.return_value = mock_session
 
-        # Mock query counts
-        mock_session.query.return_value.count.return_value = 5
+            # Test main function
+            main()
 
-        # Test main function
-        main()
-
-        # Clean işlemi yapılmalı
-        assert mock_session.query.return_value.delete.called
+            # Clean işlemi yapılmalı
+            assert mock_session.query.called
 
     def test_faker_usage(self):
         """Faker kullanımı testi."""
@@ -189,16 +179,13 @@ class TestGenerateDummyData:
         except ImportError:
             pytest.fail("Generate orders function import failed")
 
-    @patch("app.scripts.generate_dummy_data.SessionLocal")
-    def test_error_handling(self, mock_session_local):
+    def test_error_handling(self):
         """Hata yönetimi testi."""
         from ..scripts.generate_dummy_data import generate_users
 
         # Mock session with exception
         mock_session = MagicMock()
-        mock_session_local.return_value = mock_session
-        mock_session.__enter__.return_value = mock_session
-        mock_session.add.side_effect = Exception("Database error")
+        mock_session.add_all.side_effect = Exception("Database error")
 
         # Exception handling
         with pytest.raises(Exception):

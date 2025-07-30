@@ -88,20 +88,33 @@ def get_current_user(
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        # Geçersiz token kontrolü
-        if token != VALID_TOKEN:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authentication token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+        # JWT token doğrulama
+        try:
+            payload = verify_token(token)
+            user_id = payload.get("sub")
+            role = payload.get("role", "user")
+            permissions = payload.get("permissions", [])
 
-        # Geçerli token için kullanıcı bilgilerini döndür
-        return {
-            "user": "authorized",
-            "role": "admin",
-            "permissions": ["read", "write", "delete"],
-        }
+            return {
+                "user": user_id,
+                "role": role,
+                "permissions": permissions,
+            }
+        except HTTPException:
+            # JWT token geçersiz, eski token kontrolü yap
+            if token != VALID_TOKEN:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid authentication token",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+
+            # Eski token geçerli, varsayılan admin bilgileri döndür
+            return {
+                "user": "authorized",
+                "role": "admin",
+                "permissions": ["read", "write", "delete"],
+            }
 
     except HTTPException:
         # HTTPException'ları tekrar fırlat

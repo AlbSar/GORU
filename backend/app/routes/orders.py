@@ -6,18 +6,18 @@ ERP sistemi için sipariş yönetimi CRUD işlemlerini sağlar.
 import uuid
 from typing import List
 
+from app.auth import get_current_user
+from app.routes.common import get_db
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
-from ..auth import get_current_user
-from .common import get_db
+from app import models, schemas
 
 router = APIRouter()
 
 
 @router.post(
-    "/orders/",
+    "/",
     response_model=schemas.OrderRead,
     status_code=status.HTTP_201_CREATED,
     summary="Sipariş oluştur / Create order",
@@ -42,7 +42,14 @@ async def create_order(
     """
     # Testler product_name ve amount ile gönderiyor, bunları order_items'e dönüştürelim
     if "product_name" in order and "amount" in order:
-        if order["amount"] < 0:
+        # amount string olarak gelebilir, float'a çevir
+        try:
+            amount = float(order["amount"])
+        except (ValueError, TypeError):
+            raise HTTPException(
+                status_code=422, detail="Invalid amount format. Must be a valid number."
+            )
+        if amount < 0:
             raise HTTPException(status_code=422, detail="Amount cannot be negative")
         product = (
             db.query(models.Product)
@@ -54,7 +61,7 @@ async def create_order(
             product = models.Product(
                 name=order["product_name"],
                 sku=str(uuid.uuid4()),
-                price=order["amount"],
+                price=amount,
                 stock=100,
             )
             db.add(product)
@@ -63,12 +70,12 @@ async def create_order(
         order_item = {
             "product_id": product.id,
             "quantity": 1,
-            "unit_price": order["amount"],
-            "total_price": order["amount"],
+            "unit_price": amount,
+            "total_price": amount,
         }
         order_obj = schemas.OrderCreate(
             user_id=order["user_id"],
-            total_amount=order["amount"],
+            total_amount=amount,
             order_items=[order_item],
         )
     else:
@@ -113,7 +120,7 @@ async def create_order(
 
 
 @router.get(
-    "/orders/",
+    "/",
     response_model=List[schemas.OrderRead],
     summary="Siparişleri listele / List orders",
     responses={
@@ -132,7 +139,7 @@ async def list_orders(
 
 
 @router.get(
-    "/orders/{order_id}",
+    "/{order_id}",
     response_model=schemas.OrderRead,
     summary="Sipariş detay / Order detail",
     responses={
@@ -159,7 +166,7 @@ async def get_order(
 
 
 @router.put(
-    "/orders/{order_id}",
+    "/{order_id}",
     response_model=schemas.OrderRead,
     summary="Sipariş güncelle / Update order",
     responses={
@@ -230,7 +237,7 @@ async def update_order(
 
 
 @router.delete(
-    "/orders/{order_id}",
+    "/{order_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Sipariş sil / Delete order",
     responses={

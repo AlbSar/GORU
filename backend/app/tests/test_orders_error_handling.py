@@ -25,7 +25,7 @@ class TestOrdersErrorHandling:
 
     def test_get_nonexistent_order_404(self, client, auth_headers):
         """GET non-existent order → 404"""
-        response = client.get("/api/v1/orders/99999", headers=auth_headers)
+        response = client.get("/orders/99999", headers=auth_headers)
         assert response.status_code == 404
         data = response.json()
         assert "not found" in data["detail"].lower()
@@ -33,16 +33,14 @@ class TestOrdersErrorHandling:
     def test_put_nonexistent_order_404(self, client, auth_headers):
         """PUT non-existent order → 404"""
         update_data = {"user_id": 1, "product_name": "Test", "amount": 100.0}
-        response = client.put(
-            "/api/v1/orders/99999", json=update_data, headers=auth_headers
-        )
+        response = client.put("/orders/99999", json=update_data, headers=auth_headers)
         assert response.status_code == 404
         data = response.json()
         assert "not found" in data["detail"].lower()
 
     def test_delete_nonexistent_order_404(self, client, auth_headers):
         """DELETE non-existent order → 404"""
-        response = client.delete("/api/v1/orders/99999", headers=auth_headers)
+        response = client.delete("/orders/99999", headers=auth_headers)
         assert response.status_code == 404
         data = response.json()
         assert "not found" in data["detail"].lower()
@@ -53,7 +51,7 @@ class TestOrdersErrorHandling:
         """POST with missing required fields → 422"""
         # Eksik product_name - API bunu 422 döndürür çünkü schema validation
         response = client.post(
-            "/api/v1/orders/",
+            "/orders/",
             json={"user_id": 1, "amount": 100.0},
             headers=auth_headers,
         )
@@ -65,7 +63,7 @@ class TestOrdersErrorHandling:
     def test_post_missing_user_id_422(self, client, auth_headers):
         """POST with missing user_id → 422"""
         response = client.post(
-            "/api/v1/orders/",
+            "/orders/",
             json={"product_name": "Test Product", "amount": 100.0},
             headers=auth_headers,
         )
@@ -77,7 +75,7 @@ class TestOrdersErrorHandling:
     def test_post_missing_amount_422(self, client, auth_headers):
         """POST with missing amount → 422"""
         response = client.post(
-            "/api/v1/orders/",
+            "/orders/",
             json={"user_id": 1, "product_name": "Test Product"},
             headers=auth_headers,
         )
@@ -90,7 +88,7 @@ class TestOrdersErrorHandling:
         """POST with wrong data types → 422"""
         user_id = create_test_user["id"]
         response = client.post(
-            "/api/v1/orders/",
+            "/orders/",
             json={
                 "user_id": user_id,
                 "product_name": generate_unique_product(),
@@ -107,7 +105,7 @@ class TestOrdersErrorHandling:
         """POST with empty strings → 201 (API kabul ediyor)"""
         user_id = create_test_user["id"]
         response = client.post(
-            "/api/v1/orders/",
+            "/orders/",
             json={"user_id": user_id, "product_name": "", "amount": 100.0},
             headers=auth_headers,
         )
@@ -120,7 +118,7 @@ class TestOrdersErrorHandling:
         user_id = create_test_user
         if user_id:
             order_resp = client.post(
-                "/api/v1/orders/",
+                "/orders/",
                 json={
                     "user_id": user_id,
                     "product_name": generate_unique_product(),
@@ -133,7 +131,7 @@ class TestOrdersErrorHandling:
             # Negatif amount ile güncelle
             update_data = {"user_id": user_id, "product_name": "Test", "amount": -10.0}
             response = client.put(
-                f"/api/v1/orders/{order_id}", json=update_data, headers=auth_headers
+                f"/orders/{order_id}", json=update_data, headers=auth_headers
             )
             assert response.status_code == 422
             data = response.json()
@@ -142,7 +140,7 @@ class TestOrdersErrorHandling:
     def test_post_with_invalid_user_id_404(self, client, auth_headers):
         """POST with non-existent user_id → 404"""
         response = client.post(
-            "/api/v1/orders/",
+            "/orders/",
             json={
                 "user_id": 99999,
                 "product_name": generate_unique_product(),
@@ -168,9 +166,7 @@ class TestOrdersErrorHandling:
                 "product_name": generate_unique_product(),
                 "amount": 10.0,
             }
-            response = client.post(
-                "/api/v1/orders/", json=order_data, headers=auth_headers
-            )
+            response = client.post("/orders/", json=order_data, headers=auth_headers)
             assert response.status_code == 500
             data = response.json()
             assert "database error" in data["detail"].lower()
@@ -183,7 +179,7 @@ class TestOrdersErrorHandling:
         user_id = create_test_user
         if user_id:
             order_resp = client.post(
-                "/api/v1/orders/",
+                "/orders/",
                 json={
                     "user_id": user_id,
                     "product_name": generate_unique_product(),
@@ -201,7 +197,7 @@ class TestOrdersErrorHandling:
                     "amount": 10.0,
                 }
                 response = client.put(
-                    f"/api/v1/orders/{order_id}", json=update_data, headers=auth_headers
+                    f"/orders/{order_id}", json=update_data, headers=auth_headers
                 )
                 assert response.status_code == 500
                 data = response.json()
@@ -219,9 +215,7 @@ class TestOrdersErrorHandling:
                 "product_name": generate_unique_product(),
                 "amount": 10.0,
             }
-            response = client.post(
-                "/api/v1/orders/", json=order_data, headers=auth_headers
-            )
+            response = client.post("/orders/", json=order_data, headers=auth_headers)
             assert response.status_code == 500
             data = response.json()
             assert "database error" in data["detail"].lower()
@@ -234,7 +228,7 @@ class TestOrdersErrorHandling:
         """POST with very large numbers → 201 (API kabul ediyor)"""
         user_id = create_test_user["id"]
         response = client.post(
-            "/api/v1/orders/",
+            "/orders/",
             json={
                 "user_id": user_id,
                 "product_name": generate_unique_product(),
@@ -252,7 +246,7 @@ class TestOrdersErrorHandling:
         user_id = create_test_user["id"]
         special_product = f"Ürün-Çeşit-Özel_123!@#$%^&*() {uuid.uuid4()}"
         response = client.post(
-            "/api/v1/orders/",
+            "/orders/",
             json={"user_id": user_id, "product_name": special_product, "amount": 100.0},
             headers=auth_headers,
         )
@@ -266,7 +260,7 @@ class TestOrdersErrorHandling:
         user_id = create_test_user["id"]
         long_string = "A" * 1000  # 1000 karakterlik string
         response = client.post(
-            "/api/v1/orders/",
+            "/orders/",
             json={"user_id": user_id, "product_name": long_string, "amount": 100.0},
             headers=auth_headers,
         )

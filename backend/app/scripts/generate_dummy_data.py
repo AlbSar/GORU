@@ -3,17 +3,17 @@ Dummy data generator script.
 Test ve development için sahte veri oluşturur.
 """
 
+import random
 import sys
 from pathlib import Path
 
-# Add parent directory to path for imports
-sys.path.append(str(Path(__file__).parent.parent.parent))
-
-import random
-
-from app.models import Order, Stock, User
+from app.database import SessionLocal
+from app.models import Order, OrderItem, Product, Stock, User
 from faker import Faker
 from sqlalchemy.orm import Session
+
+# Add parent directory to path for imports
+sys.path.append(str(Path(__file__).parent.parent.parent))
 
 fake = Faker("tr_TR")
 
@@ -98,11 +98,7 @@ def create_dummy_orders(db: Session, users: list, stocks: list, count: int = 200
         for j in range(items_count):
             stock = random.choice(stocks)
             quantity = random.randint(1, 10)
-            unit_price = stock.unit_price + random.uniform(
-                -10, 50
-            )  # Biraz fiyat varyasyonu
-            unit_price = max(1.0, round(unit_price, 2))  # Minimum 1 TL
-
+            unit_price = stock.unit_price
             total_price = quantity * unit_price
             total_amount += total_price
 
@@ -204,5 +200,26 @@ def generate_all_dummy_data():
         db.close()
 
 
-if __name__ == "__main__":
+# Test uyumluluğu için alias fonksiyonlar
+def generate_users(db: Session, count: int = 50):
+    """Test uyumluluğu için alias."""
+    return create_dummy_users(db, count)
+
+
+def generate_stocks(db: Session, count: int = 100):
+    """Test uyumluluğu için alias."""
+    return create_dummy_stocks(db, count)
+
+
+def generate_orders(db: Session, users: list, stocks: list, count: int = 200):
+    """Test uyumluluğu için alias."""
+    return create_dummy_orders(db, users, stocks, count)
+
+
+def main():
+    """Main fonksiyon - test uyumluluğu için."""
     generate_all_dummy_data()
+
+
+if __name__ == "__main__":
+    main()

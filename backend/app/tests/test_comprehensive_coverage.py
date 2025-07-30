@@ -4,6 +4,7 @@ Tüm ana fonksiyonaliteleri test eder.
 """
 
 import pytest
+from sqlalchemy import text
 
 
 class TestSettings:
@@ -71,7 +72,7 @@ class TestDatabaseConnection:
 
         # Önce session sayısını al
         session1 = TestingSessionLocal()
-        session1.execute("SELECT 1")
+        session1.execute(text("SELECT 1"))
         session1.close()
         # Kullanıcı oluşturma endpoint'ine istek at
         user_data = {
@@ -81,13 +82,13 @@ class TestDatabaseConnection:
             "is_active": True,
             "password": "test123",
         }
-        response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
+        response = client.post("/users/", json=user_data, headers=auth_headers)
         assert (
             response.status_code == 201 or response.status_code == 400
         )  # 400: email varsa
         # Yeni bir session açıp kapatabiliyor muyuz kontrol et
         session2 = TestingSessionLocal()
-        session2.execute("SELECT 1")
+        session2.execute(text("SELECT 1"))
         session2.close()
         assert True  # Session açılıp kapanabiliyor, memory leak yok
 

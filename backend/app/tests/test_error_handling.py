@@ -31,19 +31,19 @@ class TestGlobalErrorHandling:
     def test_all_modules_get_nonexistent_404(self):
         """All modules: GET non-existent resources → 404"""
         # Orders
-        response = client.get("/api/v1/orders/99999", headers=headers)
+        response = client.get("/orders/99999", headers=headers)
         assert response.status_code == 404
         data = response.json()
         assert "not found" in data["detail"].lower()
 
         # Users
-        response = client.get("/api/v1/users/99999", headers=headers)
+        response = client.get("/users/99999", headers=headers)
         assert response.status_code == 404
         data = response.json()
         assert "not found" in data["detail"].lower()
 
         # Stocks
-        response = client.get("/api/v1/stocks/99999", headers=headers)
+        response = client.get("/stocks/99999", headers=headers)
         assert response.status_code == 404
         data = response.json()
         assert "not found" in data["detail"].lower()
@@ -52,31 +52,31 @@ class TestGlobalErrorHandling:
         """All modules: PUT non-existent resources → 404"""
         # Orders
         update_data = {"user_id": 1, "product_name": "Test", "amount": 100.0}
-        response = client.put("/api/v1/orders/99999", json=update_data, headers=headers)
+        response = client.put("/orders/99999", json=update_data, headers=auth_headers)
         assert response.status_code == 404
 
         # Users
         update_data = {"name": "Test User", "email": "test@example.com"}
-        response = client.put("/api/v1/users/99999", json=update_data, headers=headers)
+        response = client.put("/users/99999", json=update_data, headers=auth_headers)
         assert response.status_code == 404
 
         # Stocks
         update_data = {"product_name": "Test Product", "quantity": 100, "price": 10.0}
-        response = client.put("/api/v1/stocks/99999", json=update_data, headers=headers)
+        response = client.put("/stocks/99999", json=update_data, headers=auth_headers)
         assert response.status_code == 404
 
     def test_all_modules_delete_nonexistent_404(self):
         """All modules: DELETE non-existent resources → 404"""
         # Orders
-        response = client.delete("/api/v1/orders/99999", headers=headers)
+        response = client.delete("/orders/99999", headers=headers)
         assert response.status_code == 404
 
         # Users
-        response = client.delete("/api/v1/users/99999", headers=headers)
+        response = client.delete("/users/99999", headers=headers)
         assert response.status_code == 404
 
         # Stocks
-        response = client.delete("/api/v1/stocks/99999", headers=headers)
+        response = client.delete("/stocks/99999", headers=headers)
         assert response.status_code == 404
 
     # === CROSS-MODULE 422 TESTS ===
@@ -85,7 +85,7 @@ class TestGlobalErrorHandling:
         """All modules: POST with missing required fields → 422"""
         # Orders - missing product_name
         response = client.post(
-            "/api/v1/orders/",
+            "/orders/",
             json={"user_id": 1, "amount": 100.0},
             headers=headers,
         )
@@ -93,7 +93,7 @@ class TestGlobalErrorHandling:
 
         # Users - missing email
         response = client.post(
-            "/api/v1/users/",
+            "/users/",
             json={"name": "Test User", "password": "test123"},
             headers=headers,
         )
@@ -101,7 +101,7 @@ class TestGlobalErrorHandling:
 
         # Stocks - missing quantity
         response = client.post(
-            "/api/v1/stocks/",
+            "/stocks/",
             json={"product_name": "Test Product", "price": 10.0},
             headers=headers,
         )
@@ -111,7 +111,7 @@ class TestGlobalErrorHandling:
         """All modules: POST with invalid data types → 422"""
         # Orders - string instead of int for user_id
         response = client.post(
-            "/api/v1/orders/",
+            "/orders/",
             json={
                 "user_id": "invalid",
                 "product_name": unique_product(),
@@ -123,7 +123,7 @@ class TestGlobalErrorHandling:
 
         # Users - int instead of string for name
         response = client.post(
-            "/api/v1/users/",
+            "/users/",
             json={"name": 123, "email": unique_email(), "password": "test123"},
             headers=headers,
         )
@@ -131,7 +131,7 @@ class TestGlobalErrorHandling:
 
         # Stocks - string instead of int for quantity
         response = client.post(
-            "/api/v1/stocks/",
+            "/stocks/",
             json={
                 "product_name": unique_product(),
                 "quantity": "invalid",
@@ -145,7 +145,7 @@ class TestGlobalErrorHandling:
         """All modules: POST with empty strings → 422"""
         # Orders - empty product_name
         response = client.post(
-            "/api/v1/orders/",
+            "/orders/",
             json={"user_id": 1, "product_name": "", "amount": 100.0},
             headers=headers,
         )
@@ -153,7 +153,7 @@ class TestGlobalErrorHandling:
 
         # Users - empty name
         response = client.post(
-            "/api/v1/users/",
+            "/users/",
             json={"name": "", "email": unique_email(), "password": "test123"},
             headers=headers,
         )
@@ -161,7 +161,7 @@ class TestGlobalErrorHandling:
 
         # Stocks - empty product_name
         response = client.post(
-            "/api/v1/stocks/",
+            "/stocks/",
             json={"product_name": "", "quantity": 100, "price": 10.0},
             headers=headers,
         )
@@ -178,7 +178,7 @@ class TestGlobalErrorHandling:
                 "product_name": unique_product(),
                 "amount": 10.0,
             }
-            response = client.post("/api/v1/orders/", json=order_data, headers=headers)
+            response = client.post("/orders/", json=order_data, headers=auth_headers)
             assert response.status_code == 500
             data = response.json()
             assert "internal server error" in data["detail"].lower()
@@ -190,7 +190,7 @@ class TestGlobalErrorHandling:
                 "email": unique_email(),
                 "password": "test123",
             }
-            response = client.post("/api/v1/users/", json=user_data, headers=headers)
+            response = client.post("/users/", json=user_data, headers=auth_headers)
             assert response.status_code == 500
             data = response.json()
             assert "internal server error" in data["detail"].lower()
@@ -202,7 +202,7 @@ class TestGlobalErrorHandling:
                 "quantity": 100,
                 "price": 10.0,
             }
-            response = client.post("/api/v1/stocks/", json=stock_data, headers=headers)
+            response = client.post("/stocks/", json=stock_data, headers=auth_headers)
             assert response.status_code == 500
             data = response.json()
             assert "internal server error" in data["detail"].lower()
@@ -212,7 +212,7 @@ class TestGlobalErrorHandling:
         # Orders
         with patch("app.schemas.OrderUpdate", side_effect=Exception("Test exception")):
             update_data = {"user_id": 1, "product_name": "Test", "amount": 10.0}
-            response = client.put("/api/v1/orders/1", json=update_data, headers=headers)
+            response = client.put("/orders/1", json=update_data, headers=auth_headers)
             assert response.status_code == 500
             data = response.json()
             assert "internal server error" in data["detail"].lower()
@@ -220,7 +220,7 @@ class TestGlobalErrorHandling:
         # Users
         with patch("app.schemas.UserUpdate", side_effect=Exception("Test exception")):
             update_data = {"name": "Updated User", "email": "updated@example.com"}
-            response = client.put("/api/v1/users/1", json=update_data, headers=headers)
+            response = client.put("/users/1", json=update_data, headers=auth_headers)
             assert response.status_code == 500
             data = response.json()
             assert "internal server error" in data["detail"].lower()
@@ -232,7 +232,7 @@ class TestGlobalErrorHandling:
                 "quantity": 200,
                 "price": 20.0,
             }
-            response = client.put("/api/v1/stocks/1", json=update_data, headers=headers)
+            response = client.put("/stocks/1", json=update_data, headers=auth_headers)
             assert response.status_code == 500
             data = response.json()
             assert "internal server error" in data["detail"].lower()
@@ -242,7 +242,7 @@ class TestGlobalErrorHandling:
     def test_orders_with_invalid_user_id_404(self):
         """Orders: POST with non-existent user_id → 404"""
         response = client.post(
-            "/api/v1/orders/",
+            "/orders/",
             json={"user_id": 99999, "product_name": unique_product(), "amount": 100.0},
             headers=headers,
         )
@@ -255,11 +255,11 @@ class TestGlobalErrorHandling:
         email = unique_email()
         # İlk user oluştur
         user_data = {"name": "Test User", "email": email, "password": "test123"}
-        response1 = client.post("/api/v1/users/", json=user_data, headers=headers)
+        response1 = client.post("/users/", json=user_data, headers=auth_headers)
         assert response1.status_code == 201
 
         # Aynı email ile ikinci user oluşturmaya çalış
-        response2 = client.post("/api/v1/users/", json=user_data, headers=headers)
+        response2 = client.post("/users/", json=user_data, headers=auth_headers)
         assert response2.status_code == 400
         data = response2.json()
         assert "already registered" in data["detail"].lower()
@@ -269,11 +269,11 @@ class TestGlobalErrorHandling:
         product_name = unique_product()
         # İlk stock oluştur
         stock_data = {"product_name": product_name, "quantity": 100, "price": 10.0}
-        response1 = client.post("/api/v1/stocks/", json=stock_data, headers=headers)
+        response1 = client.post("/stocks/", json=stock_data, headers=auth_headers)
         assert response1.status_code == 201
 
         # Aynı product_name ile ikinci stock oluşturmaya çalış
-        response2 = client.post("/api/v1/stocks/", json=stock_data, headers=headers)
+        response2 = client.post("/stocks/", json=stock_data, headers=auth_headers)
         assert response2.status_code == 400
         data = response2.json()
         assert (
@@ -287,7 +287,7 @@ class TestGlobalErrorHandling:
         """Orders: POST with special characters → 201 (should work)"""
         special_product = f"Ürün-Çeşit-Özel_123!@#$%^&*() {uuid.uuid4()}"
         response = client.post(
-            "/api/v1/orders/",
+            "/orders/",
             json={"user_id": 1, "product_name": special_product, "amount": 100.0},
             headers=headers,
         )
@@ -298,7 +298,7 @@ class TestGlobalErrorHandling:
         """Users: POST with special characters → 201 (should work)"""
         special_name = f"Üser-Çeşit-Özel_123!@#$%^&*() {uuid.uuid4()}"
         response = client.post(
-            "/api/v1/users/",
+            "/users/",
             json={"name": special_name, "email": unique_email(), "password": "test123"},
             headers=headers,
         )
@@ -309,7 +309,7 @@ class TestGlobalErrorHandling:
         """Stocks: POST with special characters → 201 (should work)"""
         special_product = f"Ürün-Çeşit-Özel_123!@#$%^&*() {uuid.uuid4()}"
         response = client.post(
-            "/api/v1/stocks/",
+            "/stocks/",
             json={"product_name": special_product, "quantity": 100, "price": 10.0},
             headers=headers,
         )
@@ -320,7 +320,7 @@ class TestGlobalErrorHandling:
         """All modules: POST with very large numbers → 422"""
         # Orders
         response = client.post(
-            "/api/v1/orders/",
+            "/orders/",
             json={
                 "user_id": 1,
                 "product_name": unique_product(),
@@ -328,20 +328,20 @@ class TestGlobalErrorHandling:
             },
             headers=headers,
         )
-        assert response.status_code in [201, 422]
+        assert response.status_code == 422
 
         # Users - very long name
         long_name = "A" * 1000
         response = client.post(
-            "/api/v1/users/",
+            "/users/",
             json={"name": long_name, "email": unique_email(), "password": "test123"},
             headers=headers,
         )
-        assert response.status_code in [201, 422]
+        assert response.status_code == 422
 
         # Stocks
         response = client.post(
-            "/api/v1/stocks/",
+            "/stocks/",
             json={
                 "product_name": unique_product(),
                 "quantity": 999999999,
@@ -349,7 +349,7 @@ class TestGlobalErrorHandling:
             },
             headers=headers,
         )
-        assert response.status_code in [201, 422]
+        assert response.status_code == 422
 
     # === AUTHENTICATION TESTS ===
 
@@ -357,21 +357,21 @@ class TestGlobalErrorHandling:
         """All modules: POST without authentication → 401"""
         # Orders
         response = client.post(
-            "/api/v1/orders/",
+            "/orders/",
             json={"user_id": 1, "product_name": unique_product(), "amount": 100.0},
         )
         assert response.status_code == 401
 
         # Users
         response = client.post(
-            "/api/v1/users/",
+            "/users/",
             json={"name": "Test User", "email": unique_email(), "password": "test123"},
         )
         assert response.status_code == 401
 
         # Stocks
         response = client.post(
-            "/api/v1/stocks/",
+            "/stocks/",
             json={"product_name": unique_product(), "quantity": 100, "price": 10.0},
         )
         assert response.status_code == 401
@@ -381,13 +381,13 @@ class TestGlobalErrorHandling:
         invalid_headers = {"Authorization": "Bearer invalid-token"}
 
         # Orders
-        response = client.get("/api/v1/orders/", headers=invalid_headers)
+        response = client.get("/orders/", headers=invalid_headers)
         assert response.status_code == 401
 
         # Users
-        response = client.get("/api/v1/users/", headers=invalid_headers)
+        response = client.get("/users/", headers=invalid_headers)
         assert response.status_code == 401
 
         # Stocks
-        response = client.get("/api/v1/stocks/", headers=invalid_headers)
+        response = client.get("/stocks/", headers=invalid_headers)
         assert response.status_code == 401

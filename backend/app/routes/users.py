@@ -5,14 +5,14 @@ ERP sistemi için kullanıcı yönetimi CRUD işlemlerini sağlar.
 
 from typing import List
 
+from app.auth import get_current_user
+from app.core.security import create_access_token, hash_password
+from app.routes.common import get_db
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
-from ..auth import get_current_user
-from ..core.security import create_access_token, hash_password
-from .common import get_db
+from app import models, schemas
 
 router = APIRouter()
 
@@ -83,7 +83,7 @@ async def login(
 
 
 @router.post(
-    "/users/",
+    "/",
     response_model=schemas.UserRead,
     status_code=status.HTTP_201_CREATED,
     summary="Kullanıcı oluştur / Create user",
@@ -114,7 +114,7 @@ async def create_user(
         print(f"[DEBUG] E-posta zaten kayıtlı: {user.email}")
         raise HTTPException(
             status_code=400,
-            detail="Bu e-posta zaten kayıtlı. / Email already registered.",
+            detail="Email already exists",
         )
     try:
         hashed_pw = hash_password(user.password)
@@ -133,7 +133,7 @@ async def create_user(
 
 
 @router.get(
-    "/users/",
+    "/",
     response_model=List[schemas.UserRead],
     summary="Kullanıcıları listele / List users",
     responses={
@@ -152,7 +152,7 @@ async def list_users(
 
 
 @router.get(
-    "/users/{user_id}",
+    "/{user_id}",
     response_model=schemas.UserRead,
     summary="Kullanıcı detay / User detail",
     responses={
@@ -179,7 +179,7 @@ async def get_user(
 
 
 @router.put(
-    "/users/{user_id}",
+    "/{user_id}",
     response_model=schemas.UserRead,
     summary="Kullanıcı güncelle / Update user",
     responses={
@@ -217,7 +217,7 @@ async def update_user(
 
 
 @router.delete(
-    "/users/{user_id}",
+    "/{user_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Kullanıcı sil / Delete user",
     responses={

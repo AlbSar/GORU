@@ -1,223 +1,320 @@
 """
-Pytest fixtures for testing.
-Test için kullanılacak fixture'lar ve helper fonksiyonlar.
+Test fixtures for authentication and authorization tests.
 """
 
-import json
-from pathlib import Path
+from datetime import UTC, datetime, timedelta
+from typing import Dict, List
 
+import jwt
 import pytest
-from faker import Faker
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
 
-from ... import models
-from ...database import Base
-
-fake = Faker("tr_TR")
-
-# Test için in-memory SQLite database
-TEST_DATABASE_URL = "sqlite:///./test.db"
-test_engine = create_engine(
-    TEST_DATABASE_URL, connect_args={"check_same_thread": False}
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+from ...core.settings import settings
 
 
-@pytest.fixture(scope="session")
-def test_db():
-    """Test veritabanı session fixture'ı."""
-    Base.metadata.create_all(bind=test_engine)
-    yield TestingSessionLocal()
-    Base.metadata.drop_all(bind=test_engine)
+class JWTTokenFactory:
+    """JWT token oluşturmak için factory class."""
+
+    def __init__(self):
+        self.secret_key = settings.JWT_SECRET_KEY
+        self.algorithm = settings.JWT_ALGORITHM
+
+    def create_token(
+        self,
+        user_id: str = "testuser",
+        role: str = "user",
+        permissions: List[str] = None,
+        expires_in: int = 15,  # dakika
+        **extra_claims,
+    ) -> str:
+        """JWT token oluştur."""
+        if permissions is None:
+            permissions = self._get_default_permissions(role)
+
+        payload = {
+            "sub": user_id,
+            "role": role,
+            "permissions": permissions,
+            "exp": datetime.now(UTC) + timedelta(minutes=expires_in),
+            "iat": datetime.now(UTC),
+            **extra_claims,
+        }
+
+        return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+
+    def create_expired_token(
+        self,
+        user_id: str = "testuser",
+        role: str = "user",
+        permissions: List[str] = None,
+        **extra_claims,
+    ) -> str:
+        """Süresi geçmiş JWT token oluştur."""
+        if permissions is None:
+            permissions = self._get_default_permissions(role)
+
+        payload = {
+            "sub": user_id,
+            "role": role,
+            "permissions": permissions,
+            "exp": datetime.now(UTC) - timedelta(hours=1),
+            "iat": datetime.now(UTC) - timedelta(hours=2),
+            **extra_claims,
+        }
+
+        return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+
+    def create_future_token(
+        self,
+        user_id: str = "testuser",
+        role: str = "user",
+        permissions: List[str] = None,
+        **extra_claims,
+    ) -> str:
+        """Gelecekte geçerli olacak JWT token oluştur."""
+        if permissions is None:
+            permissions = self._get_default_permissions(role)
+
+        payload = {
+            "sub": user_id,
+            "role": role,
+            "permissions": permissions,
+            "exp": datetime.now(UTC) + timedelta(hours=1),
+            "iat": datetime.now(UTC) + timedelta(minutes=1),
+            **extra_claims,
+        }
+
+        return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+
+    def create_malformed_token(self) -> str:
+        """Hatalı formatlı JWT token oluştur."""
+        return "invalid.jwt.token"
+
+    def create_empty_token(self) -> str:
+        """Boş JWT token oluştur."""
+        return ""
+
+    def _get_default_permissions(self, role: str) -> List[str]:
+        """Role'e göre varsayılan yetkileri döndür."""
+        role_permissions = {
+            "admin": ["read", "write", "delete", "admin"],
+            "user": ["read", "write"],
+            "viewer": ["read"],
+            "guest": [],
+        }
+        return role_permissions.get(role, [])
 
 
-@pytest.fixture
-def db_session():
-    """Her test için temiz veritabanı session'ı."""
-    Base.metadata.create_all(bind=test_engine)
-    db = TestingSessionLocal()
-    yield db
-    db.close()
-    Base.metadata.drop_all(bind=test_engine)
+class RoleBasedFixtures:
+    """Role bazlı test fixture'ları."""
 
+    def __init__(self, token_factory: JWTTokenFactory):
+        self.token_factory = token_factory
 
-@pytest.fixture
-def sample_data():
-    """JSON dosyasından örnek veri yükler."""
-    fixtures_dir = Path(__file__).parent
-    sample_file = fixtures_dir / "sample_data.json"
-
-    with open(sample_file, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    return data
-
-
-@pytest.fixture
-def sample_user():
-    """Örnek kullanıcı verisi."""
-    return {
-        "name": "Test User",
-        "email": "test@example.com",
-        "role": "admin",
-        "is_active": True,
-        "password": "test123",
-    }
-
-
-@pytest.fixture
-def sample_order():
-    """Örnek sipariş verisi."""
-    return {
-        "user_id": 1,
-        "total_amount": 150.75,
-        "status": "pending",
-        "order_items": [
-            {
-                "product_id": 1,
-                "quantity": 2,
-                "unit_price": 50.25,
-                "total_price": 100.50,
-            }
-        ],
-    }
-
-
-@pytest.fixture
-def sample_stock():
-    """Örnek stok verisi."""
-    return {
-        "product_name": "Test Product",
-        "quantity": 100,
-        "unit_price": 25.99,
-        "supplier": "Test Supplier",
-    }
-
-
-@pytest.fixture
-def fake_user_data():
-    """Faker ile üretilen sahte kullanıcı verisi."""
-    return {
-        "name": fake.name(),
-        "email": fake.unique.email(),
-        "role": fake.random_element(elements=["admin", "user", "manager"]),
-        "is_active": fake.boolean(),
-        "password": fake.password(),
-    }
-
-
-@pytest.fixture
-def fake_stock_data():
-    """Faker ile üretilen sahte stok verisi."""
-    return {
-        "product_name": f"{fake.company()} {fake.word()}",
-        "quantity": fake.random_int(min=0, max=1000),
-        "unit_price": round(fake.random.uniform(1.0, 1000.0), 2),
-        "supplier": fake.company(),
-    }
-
-
-@pytest.fixture
-def multiple_users(db_session: Session):
-    """Veritabanına çoklu kullanıcı ekler."""
-    users = []
-    for i in range(5):
-        user = models.User(
-            name=fake.name(),
-            email=fake.unique.email(),
-            role=fake.random_element(elements=["admin", "user", "manager"]),
-            is_active=fake.random_element(elements=[0, 1]),
-            password_hash=fake.password(),
+    def admin_user(self) -> Dict[str, str]:
+        """Admin kullanıcı fixture'ı."""
+        token = self.token_factory.create_token(
+            user_id="admin_user",
+            role="admin",
+            permissions=["read", "write", "delete", "admin"],
         )
-        db_session.add(user)
-        users.append(user)
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
-    db_session.commit()
-    return users
-
-
-@pytest.fixture
-def multiple_stocks(db_session: Session):
-    """Veritabanına çoklu stok ekler."""
-    stocks = []
-    for i in range(10):
-        stock = models.Stock(
-            product_name=f"{fake.company()} {fake.word()}",
-            quantity=fake.random_int(min=0, max=500),
-            unit_price=round(fake.random.uniform(10.0, 500.0), 2),
-            supplier=fake.company(),
+    def regular_user(self) -> Dict[str, str]:
+        """Normal kullanıcı fixture'ı."""
+        token = self.token_factory.create_token(
+            user_id="regular_user", role="user", permissions=["read", "write"]
         )
-        db_session.add(stock)
-        stocks.append(stock)
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
-    db_session.commit()
-    return stocks
+    def viewer_user(self) -> Dict[str, str]:
+        """Viewer kullanıcı fixture'ı."""
+        token = self.token_factory.create_token(
+            user_id="viewer_user", role="viewer", permissions=["read"]
+        )
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    def guest_user(self) -> Dict[str, str]:
+        """Misafir kullanıcı fixture'ı."""
+        token = self.token_factory.create_token(
+            user_id="guest_user", role="guest", permissions=[]
+        )
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    def expired_admin_user(self) -> Dict[str, str]:
+        """Süresi geçmiş admin kullanıcı fixture'ı."""
+        token = self.token_factory.create_expired_token(
+            user_id="expired_admin", role="admin"
+        )
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    def future_admin_user(self) -> Dict[str, str]:
+        """Gelecekte geçerli admin kullanıcı fixture'ı."""
+        token = self.token_factory.create_future_token(
+            user_id="future_admin", role="admin"
+        )
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+
+class PermissionFixtures:
+    """Permission bazlı test fixture'ları."""
+
+    def __init__(self, token_factory: JWTTokenFactory):
+        self.token_factory = token_factory
+
+    def read_permission_user(self) -> Dict[str, str]:
+        """Sadece okuma yetkisi olan kullanıcı."""
+        token = self.token_factory.create_token(
+            user_id="read_user", role="viewer", permissions=["read"]
+        )
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    def write_permission_user(self) -> Dict[str, str]:
+        """Yazma yetkisi olan kullanıcı."""
+        token = self.token_factory.create_token(
+            user_id="write_user", role="user", permissions=["read", "write"]
+        )
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    def delete_permission_user(self) -> Dict[str, str]:
+        """Silme yetkisi olan kullanıcı."""
+        token = self.token_factory.create_token(
+            user_id="delete_user", role="admin", permissions=["read", "write", "delete"]
+        )
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    def admin_permission_user(self) -> Dict[str, str]:
+        """Admin yetkisi olan kullanıcı."""
+        token = self.token_factory.create_token(
+            user_id="admin_user",
+            role="admin",
+            permissions=["read", "write", "delete", "admin"],
+        )
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    def no_permission_user(self) -> Dict[str, str]:
+        """Hiç yetkisi olmayan kullanıcı."""
+        token = self.token_factory.create_token(
+            user_id="no_permission_user", role="guest", permissions=[]
+        )
+        return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+
+# Global fixture instances
+jwt_factory = JWTTokenFactory()
+role_fixtures = RoleBasedFixtures(jwt_factory)
+permission_fixtures = PermissionFixtures(jwt_factory)
+
+
+# Pytest fixtures
+@pytest.fixture
+def jwt_token_factory():
+    """JWT token factory fixture."""
+    return jwt_factory
 
 
 @pytest.fixture
-def edge_case_data():
-    """Edge case test verileri."""
+def role_based_fixtures():
+    """Role bazlı fixture'lar."""
+    return role_fixtures
+
+
+@pytest.fixture
+def permission_based_fixtures():
+    """Permission bazlı fixture'lar."""
+    return permission_fixtures
+
+
+@pytest.fixture
+def admin_headers():
+    """Admin kullanıcı headers."""
+    return role_fixtures.admin_user()
+
+
+@pytest.fixture
+def user_headers():
+    """Normal kullanıcı headers."""
+    return role_fixtures.regular_user()
+
+
+@pytest.fixture
+def viewer_headers():
+    """Viewer kullanıcı headers."""
+    return role_fixtures.viewer_user()
+
+
+@pytest.fixture
+def guest_headers():
+    """Misafir kullanıcı headers."""
+    return role_fixtures.guest_user()
+
+
+@pytest.fixture
+def expired_headers():
+    """Süresi geçmiş token headers."""
+    return role_fixtures.expired_admin_user()
+
+
+@pytest.fixture
+def future_headers():
+    """Gelecekte geçerli token headers."""
+    return role_fixtures.future_admin_user()
+
+
+@pytest.fixture
+def read_headers():
+    """Sadece okuma yetkisi headers."""
+    return permission_fixtures.read_permission_user()
+
+
+@pytest.fixture
+def write_headers():
+    """Yazma yetkisi headers."""
+    return permission_fixtures.write_permission_user()
+
+
+@pytest.fixture
+def delete_headers():
+    """Silme yetkisi headers."""
+    return permission_fixtures.delete_permission_user()
+
+
+@pytest.fixture
+def admin_permission_headers():
+    """Admin yetkisi headers."""
+    return permission_fixtures.admin_permission_user()
+
+
+@pytest.fixture
+def no_permission_headers():
+    """Hiç yetkisi olmayan headers."""
+    return permission_fixtures.no_permission_user()
+
+
+@pytest.fixture
+def malformed_token_headers():
+    """Hatalı formatlı token headers."""
     return {
-        "invalid_email_user": {
-            "name": "Invalid Email User",
-            "email": "invalid-email",
-            "role": "user",
-            "is_active": True,
-            "password": "test123",
-        },
-        "empty_name_user": {
-            "name": "",
-            "email": "empty@example.com",
-            "role": "user",
-            "is_active": True,
-            "password": "test123",
-        },
-        "negative_quantity_stock": {
-            "product_name": "Negative Stock",
-            "quantity": -10,
-            "unit_price": 25.99,
-            "supplier": "Test Supplier",
-        },
-        "zero_price_stock": {
-            "product_name": "Zero Price Stock",
-            "quantity": 100,
-            "unit_price": 0.0,
-            "supplier": "Test Supplier",
-        },
+        "Authorization": f"Bearer {jwt_factory.create_malformed_token()}",
+        "Content-Type": "application/json",
     }
 
 
-def create_test_user(db: Session, **kwargs) -> models.User:
-    """Test kullanıcısı oluşturur."""
-    user_data = {
-        "name": fake.name(),
-        "email": fake.unique.email(),
-        "role": "user",
-        "is_active": 1,
-        "password_hash": fake.password(),
+@pytest.fixture
+def empty_token_headers():
+    """Boş token headers."""
+    return {
+        "Authorization": f"Bearer {jwt_factory.create_empty_token()}",
+        "Content-Type": "application/json",
     }
-    user_data.update(kwargs)
-
-    user = models.User(**user_data)
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
 
 
-def create_test_stock(db: Session, **kwargs) -> models.Stock:
-    """Test stoku oluşturur."""
-    stock_data = {
-        "product_name": f"{fake.company()} {fake.word()}",
-        "quantity": fake.random_int(min=1, max=100),
-        "unit_price": round(fake.random.uniform(10.0, 100.0), 2),
-        "supplier": fake.company(),
-    }
-    stock_data.update(kwargs)
+@pytest.fixture
+def no_auth_headers():
+    """Authentication olmayan headers."""
+    return {"Content-Type": "application/json"}
 
-    stock = models.Stock(**stock_data)
-    db.add(stock)
-    db.commit()
-    db.refresh(stock)
-    return stock
+
+@pytest.fixture
+def invalid_auth_headers():
+    """Geçersiz authentication headers."""
+    return {"Authorization": "Bearer invalid-token", "Content-Type": "application/json"}

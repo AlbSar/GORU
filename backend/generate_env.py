@@ -5,7 +5,6 @@ Bu script güvenli secret key'ler oluşturur ve .env dosyası oluşturur.
 """
 
 import secrets
-import os
 from pathlib import Path
 
 
@@ -16,11 +15,11 @@ def generate_secret_key(length: int = 32) -> str:
 
 def create_env_file():
     """Development için .env dosyası oluşturur."""
-    
+
     # Güvenli secret key'ler oluştur
     secret_key = generate_secret_key(32)
     jwt_secret_key = generate_secret_key(32)
-    
+
     env_content = f"""# =============================================================================
 # GORU ERP Backend - Development Environment
 # =============================================================================
@@ -93,12 +92,12 @@ PROJECT_NAME=GORU ERP Backend
 # Development test token
 VALID_TOKEN=test-token-12345
 """
-    
+
     # .env dosyasını oluştur
     env_path = Path(".env")
     with open(env_path, "w", encoding="utf-8") as f:
         f.write(env_content)
-    
+
     print("✅ .env dosyası oluşturuldu!")
     print(f"📁 Dosya konumu: {env_path.absolute()}")
     print(f"🔑 Secret Key: {secret_key}")
@@ -109,7 +108,7 @@ VALID_TOKEN=test-token-12345
 
 def create_production_env():
     """Production için örnek .env dosyası oluşturur."""
-    
+
     production_env_content = """# =============================================================================
 # GORU ERP Backend - Production Environment
 # =============================================================================
@@ -181,12 +180,12 @@ PROJECT_NAME=GORU ERP Backend
 # Production'da test token kullanmayın
 VALID_TOKEN=
 """
-    
+
     # .env.production dosyasını oluştur
     env_prod_path = Path(".env.production")
     with open(env_prod_path, "w", encoding="utf-8") as f:
         f.write(production_env_content)
-    
+
     print("✅ .env.production dosyası oluşturuldu!")
     print(f"📁 Dosya konumu: {env_prod_path.absolute()}")
     print("\n⚠️  ÖNEMLİ: Production'da secret key'leri değiştirin!")
@@ -195,18 +194,18 @@ VALID_TOKEN=
 if __name__ == "__main__":
     print("🔧 Environment variables generator")
     print("=" * 50)
-    
+
     # Development .env oluştur
     create_env_file()
     print()
-    
+
     # Production .env oluştur
     create_production_env()
     print()
-    
+
     print("🎉 Tamamlandı!")
     print("\n📋 Sonraki adımlar:")
     print("1. .env dosyasını kontrol edin")
     print("2. Uygulamayı test edin")
     print("3. Production'da secret key'leri değiştirin")
-    print("4. .gitignore'a .env ekleyin") 
+    print("4. .gitignore'a .env ekleyin")

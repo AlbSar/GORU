@@ -326,7 +326,7 @@ class TestMockVsRealEndpoints:
 
     def test_real_endpoints_require_auth(self, mock_disabled_client):
         """Gerçek endpoint'ler auth gerektirmeli."""
-        endpoints = ["/api/v1/users/", "/api/v1/stocks/", "/api/v1/orders/"]
+        endpoints = ["/users/", "/stocks/", "/orders/"]
 
         for endpoint in endpoints:
             response = mock_disabled_client.get(endpoint)
@@ -350,9 +350,7 @@ class TestMockVsRealEndpoints:
 
         # Real endpoint (auth gerektirir) - database sorunu olabilir
         try:
-            real_response = mock_enabled_client.get(
-                "/api/v1/users/", headers=auth_headers
-            )
+            real_response = mock_enabled_client.get("/users/", headers=auth_headers)
             # Auth header'ı varsa 200, yoksa 401/403, database sorunu varsa 500
             assert real_response.status_code in [200, 401, 403, 500]
         except Exception:
@@ -371,7 +369,7 @@ class TestMockVsRealEndpoints:
         assert mock_response.status_code == 200
 
         # Gerçek endpoint'ler /api/v1 prefix'i kullanmalı
-        real_response = mock_enabled_client.get("/api/v1/users/")
+        real_response = mock_enabled_client.get("/users/")
         assert real_response.status_code in [
             401,
             403,

@@ -56,6 +56,7 @@ class Settings(BaseSettings):
     ENABLE_SECURITY_HEADERS: bool = True
     ENABLE_RATE_LIMITING: bool = True
     ENABLE_LOGGING_MIDDLEWARE: bool = True
+    ENABLE_HEADER_VALIDATION: bool = True
 
     # Rate limiting ayarları
     DEFAULT_RATE_LIMIT: int = 60  # dakika başına request

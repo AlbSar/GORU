@@ -211,6 +211,8 @@ class Stock(Base):
         id: Benzersiz stok kimliği
         product_name: Ürün adı (benzersiz)
         quantity: Stok miktarı
+        unit_price: Birim fiyat
+        supplier: Tedarikçi
         location: Stok konumu
         created_at: Stok kaydı oluşturma tarihi
     """
@@ -220,5 +222,7 @@ class Stock(Base):
     id = Column(Integer, primary_key=True, index=True)
     product_name = Column(String, unique=True, nullable=False, index=True)
     quantity = Column(Integer, nullable=False, default=0)
+    unit_price = Column(Float, nullable=False, default=0.0)
+    supplier = Column(String, nullable=True)
     location = Column(String, nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)

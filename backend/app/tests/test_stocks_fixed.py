@@ -22,7 +22,7 @@ class TestStocksWithAuth:
             "unit_price": 25.99,
             "supplier": "Test Supplier",
         }
-        response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
+        response = client.post("/stocks/", json=stock_data, headers=auth_headers)
         assert response.status_code == 201
         data = response.json()
         assert data["product_name"] == stock_data["product_name"]
@@ -31,7 +31,7 @@ class TestStocksWithAuth:
 
     def test_get_stocks(self, client, auth_headers):
         """Stok listesi getirme testi."""
-        response = client.get("/api/v1/stocks/", headers=auth_headers)
+        response = client.get("/stocks/", headers=auth_headers)
         assert response.status_code == 200
         stocks = response.json()
         assert isinstance(stocks, list)
@@ -40,7 +40,7 @@ class TestStocksWithAuth:
         """ID'ye göre stok getirme testi."""
         if create_test_stock:
             response = client.get(
-                f"/api/v1/stocks/{create_test_stock['id']}", headers=auth_headers
+                f"/stocks/{create_test_stock['id']}", headers=auth_headers
             )
             assert response.status_code == 200
             stock = response.json()
@@ -51,7 +51,7 @@ class TestStocksWithAuth:
         if create_test_stock:
             update_data = {"quantity": 200}
             response = client.put(
-                f"/api/v1/stocks/{create_test_stock['id']}",
+                f"/stocks/{create_test_stock['id']}",
                 json=update_data,
                 headers=auth_headers,
             )
@@ -68,20 +68,16 @@ class TestStocksWithAuth:
             "unit_price": 15.99,
             "supplier": "Delete Test Supplier",
         }
-        create_response = client.post(
-            "/api/v1/stocks/", json=stock_data, headers=auth_headers
-        )
+        create_response = client.post("/stocks/", json=stock_data, headers=auth_headers)
         assert create_response.status_code == 201
         stock_id = create_response.json()["id"]
 
         # Sonra sil
-        delete_response = client.delete(
-            f"/api/v1/stocks/{stock_id}", headers=auth_headers
-        )
+        delete_response = client.delete(f"/stocks/{stock_id}", headers=auth_headers)
         assert delete_response.status_code == 204
 
         # Silindiğini kontrol et
-        get_response = client.get(f"/api/v1/stocks/{stock_id}", headers=auth_headers)
+        get_response = client.get(f"/stocks/{stock_id}", headers=auth_headers)
         assert get_response.status_code == 404
 
 
@@ -96,7 +92,7 @@ class TestStocksValidation:
             "unit_price": 25.99,
             "supplier": "Test Supplier",
         }
-        response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
+        response = client.post("/stocks/", json=stock_data, headers=auth_headers)
         assert response.status_code == 422
 
     def test_create_stock_empty_product_name(self, client, auth_headers):
@@ -107,7 +103,7 @@ class TestStocksValidation:
             "unit_price": 25.99,
             "supplier": "Test Supplier",
         }
-        response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
+        response = client.post("/stocks/", json=stock_data, headers=auth_headers)
         assert response.status_code == 422
 
     def test_create_stock_missing_fields(self, client, auth_headers):
@@ -116,12 +112,12 @@ class TestStocksValidation:
             "product_name": "Incomplete Stock"
             # quantity, unit_price, supplier eksik
         }
-        response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
+        response = client.post("/stocks/", json=stock_data, headers=auth_headers)
         assert response.status_code == 422
 
     def test_get_nonexistent_stock(self, client, auth_headers):
         """Olmayan stok getirme testi."""
-        response = client.get("/api/v1/stocks/99999", headers=auth_headers)
+        response = client.get("/stocks/99999", headers=auth_headers)
         assert response.status_code == 404
 
 
@@ -130,7 +126,7 @@ class TestStocksUnauthorized:
 
     def test_get_stocks_without_auth(self, unauthenticated_client):
         """Yetkilendirme olmadan stok listesi."""
-        response = unauthenticated_client.get("/api/v1/stocks/")
+        response = unauthenticated_client.get("/stocks/")
         assert response.status_code == 401
 
     def test_create_stock_without_auth(self, unauthenticated_client):
@@ -141,5 +137,5 @@ class TestStocksUnauthorized:
             "unit_price": 25.99,
             "supplier": "Test Supplier",
         }
-        response = unauthenticated_client.post("/api/v1/stocks/", json=stock_data)
+        response = unauthenticated_client.post("/stocks/", json=stock_data)
         assert response.status_code == 401

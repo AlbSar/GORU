@@ -4,6 +4,7 @@ ERP sistemi için API endpoint'lerini sağlar.
 """
 
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request, status
@@ -19,6 +20,11 @@ from .middleware import (
     RateLimitingMiddleware,
     SecurityHeadersMiddleware,
 )
+from .middleware.header_validation import (
+    BearerTokenMiddleware,
+    ContentTypeValidationMiddleware,
+    HeaderValidationMiddleware,
+)
 from .routes import orders_router, stocks_router, users_router
 
 # Logging konfigürasyonu
@@ -33,8 +39,6 @@ async def lifespan(app: FastAPI):
     logger.info("Uygulama başlatılıyor...")
 
     # Mock modunda veya test modunda veritabanı bağlantısı kurma
-    import os
-
     from .core.settings import settings
 
     is_testing = os.getenv("TESTING") or os.getenv("PYTEST_CURRENT_TEST")
@@ -67,7 +71,8 @@ app = FastAPI(
     * **Security Headers**: CORS, CSP, HSTS güvenlik header'ları
     * **Request Logging**: Detaylı request/response logging
     * **Monitoring**: Health check, metrics ve status endpoint'leri
-    * **Production Ready**: Production ortamı için optimize edilmiş middleware'ler
+    * **Production Ready**: Production ortamı için optimize edilmiş 
+      middleware'ler
     
     ## Monitoring Endpoints
     * `GET /health` - Temel health check
@@ -75,7 +80,8 @@ app = FastAPI(
     * `GET /status` - Detaylı servis durumu
     
     ## Middleware'ler
-    * **Security Headers**: X-Content-Type-Options, X-Frame-Options, CSP, HSTS
+    * **Security Headers**: X-Content-Type-Options, X-Frame-Options, 
+      CSP, HSTS
     * **Rate Limiting**: IP bazlı, endpoint bazlı farklı limitler
     * **Logging**: Request/response timing ve detayları
     """,
@@ -121,6 +127,12 @@ if settings.ENABLE_RATE_LIMITING:
 
 if settings.ENABLE_SECURITY_HEADERS:
     app.add_middleware(SecurityHeadersMiddleware)
+
+# Header validation middleware'leri ekle
+if settings.ENABLE_HEADER_VALIDATION:
+    app.add_middleware(HeaderValidationMiddleware)
+    app.add_middleware(BearerTokenMiddleware)
+    app.add_middleware(ContentTypeValidationMiddleware)
 
 
 # Global exception handlers
@@ -175,7 +187,7 @@ async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
-            "detail": "Database error occurred",
+            "detail": "Internal server error",
             "status_code": 500,
             "path": str(request.url),
         },
@@ -197,9 +209,9 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 
 # Router'ları ekle
-app.include_router(users_router, prefix="/api/v1")
-app.include_router(orders_router, prefix="/api/v1")
-app.include_router(stocks_router, prefix="/api/v1")
+app.include_router(users_router, prefix="/users", tags=["users"])
+app.include_router(orders_router, prefix="/orders", tags=["orders"])
+app.include_router(stocks_router, prefix="/stocks", tags=["stocks"])
 
 # Mock router'ı ekle (sadece USE_MOCK=true ise)
 if settings.USE_MOCK:

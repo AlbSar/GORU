@@ -1,6 +1,7 @@
 import datetime
 
-from models import (
+from ..database import SessionLocal
+from ..models import (
     Address,
     Category,
     Order,
@@ -10,10 +11,6 @@ from models import (
     StockMovement,
     User,
 )
-
-from ..database import Base, SessionLocal, engine
-
-Base.metadata.create_all(bind=engine)
 
 
 def seed():
