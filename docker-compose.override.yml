@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  backend:
+    # Development için hot reload aktif
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    environment:
+      - DEBUG=true
+      - ENVIRONMENT=development
+      - PYTHONPATH=/app
+    volumes:
+      # Kod değişikliklerinin anında yansıması için
+      - ./backend:/app
+      # Cache dosyalarını container dışında tut
+      - /app/__pycache__
+      - /app/.pytest_cache
+      - /app/htmlcov
+      - /app/.coverage
+    # Development için daha fazla memory
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  db:
+    # Development için daha fazla log
+    environment:
+      - POSTGRES_LOG_STATEMENT=all
+      - POSTGRES_LOG_MIN_DURATION_STATEMENT=0
+    # Development için daha fazla memory
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M 
