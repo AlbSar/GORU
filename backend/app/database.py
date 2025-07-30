@@ -6,8 +6,7 @@ Environment variable'lara göre dinamik database yapılandırması.
 import os
 
 from sqlalchemy import create_engine, text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from .core.settings import settings

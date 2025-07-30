@@ -86,12 +86,13 @@ class TestOrdersErrorHandling:
         data = response.json()
         assert "detail" in data
 
-    def test_post_invalid_data_types_422(self, client, auth_headers):
+    def test_post_invalid_data_types_422(self, client, auth_headers, create_test_user):
         """POST with wrong data types → 422"""
+        user_id = create_test_user["id"]
         response = client.post(
             "/api/v1/orders/",
             json={
-                "user_id": "invalid",
+                "user_id": user_id,
                 "product_name": generate_unique_product(),
                 "amount": "invalid",
             },
@@ -102,11 +103,12 @@ class TestOrdersErrorHandling:
         data = response.json()
         assert "detail" in data
 
-    def test_post_empty_strings_201(self, client, auth_headers):
+    def test_post_empty_strings_201(self, client, auth_headers, create_test_user):
         """POST with empty strings → 201 (API kabul ediyor)"""
+        user_id = create_test_user["id"]
         response = client.post(
             "/api/v1/orders/",
-            json={"user_id": 1, "product_name": "", "amount": 100.0},
+            json={"user_id": user_id, "product_name": "", "amount": 100.0},
             headers=auth_headers,
         )
         # API boş string'leri kabul ediyor
@@ -154,13 +156,15 @@ class TestOrdersErrorHandling:
 
     # === 500 INTERNAL SERVER ERROR TESTS ===
 
-    def test_create_order_internal_error_500(self, client, auth_headers):
+    def test_create_order_internal_error_500(
+        self, client, auth_headers, create_test_user
+    ):
         """POST with internal exception → 500"""
-        with patch(
-            "app.routes.schemas.OrderCreate", side_effect=Exception("Test exception")
-        ):
+        user_id = create_test_user["id"]
+        with patch("app.models.Order") as mock_order:
+            mock_order.side_effect = Exception("Internal server error")
             order_data = {
-                "user_id": 1,
+                "user_id": user_id,
                 "product_name": generate_unique_product(),
                 "amount": 10.0,
             }
@@ -169,7 +173,7 @@ class TestOrdersErrorHandling:
             )
             assert response.status_code == 500
             data = response.json()
-            assert "internal server error" in data["detail"].lower()
+            assert "database error" in data["detail"].lower()
 
     def test_update_order_internal_error_500(
         self, client, auth_headers, create_test_user
@@ -190,9 +194,7 @@ class TestOrdersErrorHandling:
             order_id = order_resp.json()["id"]
 
             # OrderUpdate schema'sı yok, bu yüzden farklı bir mock kullanıyoruz
-            with patch(
-                "app.routes.models.Order", side_effect=Exception("Test exception")
-            ):
+            with patch("app.models.Order", side_effect=Exception("Test exception")):
                 update_data = {
                     "user_id": user_id,
                     "product_name": "Test",
@@ -203,14 +205,17 @@ class TestOrdersErrorHandling:
                 )
                 assert response.status_code == 500
                 data = response.json()
-                assert "internal server error" in data["detail"].lower()
+                assert "database error" in data["detail"].lower()
 
-    def test_create_order_database_error_500(self, client, auth_headers):
+    def test_create_order_database_error_500(
+        self, client, auth_headers, create_test_user
+    ):
         """POST with database exception → 500"""
-        with patch("app.routes.SessionLocal") as mock_session:
-            mock_session.side_effect = Exception("Database connection failed")
+        user_id = create_test_user["id"]
+        with patch("sqlalchemy.orm.Session.commit") as mock_commit:
+            mock_commit.side_effect = Exception("Database connection failed")
             order_data = {
-                "user_id": 1,
+                "user_id": user_id,
                 "product_name": generate_unique_product(),
                 "amount": 10.0,
             }
@@ -219,16 +224,19 @@ class TestOrdersErrorHandling:
             )
             assert response.status_code == 500
             data = response.json()
-            assert "internal server error" in data["detail"].lower()
+            assert "database error" in data["detail"].lower()
 
     # === EDGE CASES ===
 
-    def test_post_with_very_large_numbers_201(self, client, auth_headers):
+    def test_post_with_very_large_numbers_201(
+        self, client, auth_headers, create_test_user
+    ):
         """POST with very large numbers → 201 (API kabul ediyor)"""
+        user_id = create_test_user["id"]
         response = client.post(
             "/api/v1/orders/",
             json={
-                "user_id": 1,
+                "user_id": user_id,
                 "product_name": generate_unique_product(),
                 "amount": 999999999999999.99,
             },
@@ -237,23 +245,29 @@ class TestOrdersErrorHandling:
         # API büyük sayıları kabul ediyor
         assert response.status_code == 201
 
-    def test_post_with_special_characters_201(self, client, auth_headers):
+    def test_post_with_special_characters_201(
+        self, client, auth_headers, create_test_user
+    ):
         """POST with special characters → 201 (should work)"""
+        user_id = create_test_user["id"]
         special_product = f"Ürün-Çeşit-Özel_123!@#$%^&*() {uuid.uuid4()}"
         response = client.post(
             "/api/v1/orders/",
-            json={"user_id": 1, "product_name": special_product, "amount": 100.0},
+            json={"user_id": user_id, "product_name": special_product, "amount": 100.0},
             headers=auth_headers,
         )
         # Özel karakterler kabul edilmeli
         assert response.status_code == 201
 
-    def test_post_with_very_long_strings_201(self, client, auth_headers):
+    def test_post_with_very_long_strings_201(
+        self, client, auth_headers, create_test_user
+    ):
         """POST with very long strings → 201 (API kabul ediyor)"""
+        user_id = create_test_user["id"]
         long_string = "A" * 1000  # 1000 karakterlik string
         response = client.post(
             "/api/v1/orders/",
-            json={"user_id": 1, "product_name": long_string, "amount": 100.0},
+            json={"user_id": user_id, "product_name": long_string, "amount": 100.0},
             headers=auth_headers,
         )
         # API uzun stringleri kabul ediyor

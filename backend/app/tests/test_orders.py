@@ -628,7 +628,7 @@ class TestOrderDatabaseConstraints:
 
     def test_order_database_connection_error(self):
         """Database connection error senaryosu"""
-        with patch("app.routes.SessionLocal") as mock_session:
+        with patch("app.database.SessionLocal") as mock_session:
             mock_session.side_effect = Exception("Database connection failed")
 
             order_data = {
@@ -904,9 +904,7 @@ class TestGlobalErrorHandling:
 
     def test_orders_create_internal_error_500(self):
         """Orders: POST with internal exception → 500"""
-        with patch(
-            "app.routes.schemas.OrderCreate", side_effect=Exception("Test exception")
-        ):
+        with patch("app.schemas.OrderCreate", side_effect=Exception("Test exception")):
             order_data = {
                 "user_id": 1,
                 "product_name": unique_product(),

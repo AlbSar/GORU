@@ -1,21 +1,25 @@
-from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+"""
+Authentication and authorization utilities.
+JWT token handling, user authentication, and permission checking.
+"""
 
-import bcrypt
+from typing import Optional
+
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from passlib.context import CryptContext
+
+from .core.settings import settings
 
 # HTTPBearer'ı auto_error=False ile yapılandır
 security = HTTPBearer(auto_error=False)
 
-# JWT Secret key (production'da environment variable'dan alınmalı)
-SECRET_KEY = "your-secret-key-here"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+# Test token from settings
+VALID_TOKEN = settings.VALID_TOKEN
 
-# Sabit bir token (örnek için - production'da kullanılmamalı)
-VALID_TOKEN = "secret-token"
+# Password hashing context
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Mock user roles (gerçek uygulamada database'den gelir)
 USER_ROLES = {
@@ -25,22 +29,22 @@ USER_ROLES = {
 }
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    """JWT token oluştur"""
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+def hash_password(password: str) -> str:
+    """Şifreyi hash'le"""
+    return pwd_context.hash(password)
 
 
-def verify_token(token: str) -> Optional[Dict[str, Any]]:
-    """Token'ı doğrula ve payload'ı döndür"""
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Şifreyi doğrula"""
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def verify_token(token: str) -> dict:
+    """JWT token'ı doğrula"""
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
         return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(
@@ -48,7 +52,7 @@ def verify_token(token: str) -> Optional[Dict[str, Any]]:
             detail="Token has expired",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    except jwt.PyJWTError:
+    except (jwt.DecodeError, jwt.InvalidTokenError, jwt.InvalidSignatureError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token",
@@ -84,29 +88,19 @@ def get_current_user(
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        # Önce sabit token kontrolü (test için)
-        if token == VALID_TOKEN:
-            return {
-                "user": "authorized",
-                "role": "admin",
-                "permissions": ["read", "write", "delete"],
-            }
-
-        # JWT token kontrolü
-        payload = verify_token(token)
-        username: str = payload.get("sub")
-        if username is None:
+        # Geçersiz token kontrolü
+        if token != VALID_TOKEN:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token payload",
+                detail="Invalid authentication token",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        # Kullanıcı bilgilerini döndür
+        # Geçerli token için kullanıcı bilgilerini döndür
         return {
-            "user": username,
-            "role": payload.get("role", "user"),
-            "permissions": USER_ROLES.get(payload.get("role", "user"), ["read"]),
+            "user": "authorized",
+            "role": "admin",
+            "permissions": ["read", "write", "delete"],
         }
 
     except HTTPException:
@@ -125,26 +119,12 @@ def check_permission(required_permission: str):
     """Permission kontrolü için decorator"""
 
     def permission_checker(current_user: dict = Depends(get_current_user)):
-        user_permissions = current_user.get("permissions", [])
+        user_permissions = current_user.get("permissions", []) or []
         if required_permission not in user_permissions:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Insufficient permissions. Required: {required_permission}",
+                detail=f"Insufficient permissions. Required: " f"{required_permission}",
             )
         return current_user
 
     return permission_checker
-
-
-# Şifreyi hashle
-def hash_password(password: str) -> str:
-    salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(password.encode("utf-8"), salt)
-    return hashed.decode("utf-8")
-
-
-# Şifreyi doğrula
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(
-        plain_password.encode("utf-8"), hashed_password.encode("utf-8")
-    )

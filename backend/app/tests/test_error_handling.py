@@ -172,9 +172,7 @@ class TestGlobalErrorHandling:
     def test_all_modules_create_internal_error_500(self):
         """All modules: POST with internal exception → 500"""
         # Orders
-        with patch(
-            "app.routes.schemas.OrderCreate", side_effect=Exception("Test exception")
-        ):
+        with patch("app.schemas.OrderCreate", side_effect=Exception("Test exception")):
             order_data = {
                 "user_id": 1,
                 "product_name": unique_product(),
@@ -186,9 +184,7 @@ class TestGlobalErrorHandling:
             assert "internal server error" in data["detail"].lower()
 
         # Users
-        with patch(
-            "app.routes.schemas.UserCreate", side_effect=Exception("Test exception")
-        ):
+        with patch("app.schemas.UserCreate", side_effect=Exception("Test exception")):
             user_data = {
                 "name": "Test User",
                 "email": unique_email(),
@@ -200,9 +196,7 @@ class TestGlobalErrorHandling:
             assert "internal server error" in data["detail"].lower()
 
         # Stocks
-        with patch(
-            "app.routes.schemas.StockCreate", side_effect=Exception("Test exception")
-        ):
+        with patch("app.schemas.StockCreate", side_effect=Exception("Test exception")):
             stock_data = {
                 "product_name": unique_product(),
                 "quantity": 100,
@@ -216,9 +210,7 @@ class TestGlobalErrorHandling:
     def test_all_modules_update_internal_error_500(self):
         """All modules: PUT with internal exception → 500"""
         # Orders
-        with patch(
-            "app.routes.schemas.OrderUpdate", side_effect=Exception("Test exception")
-        ):
+        with patch("app.schemas.OrderUpdate", side_effect=Exception("Test exception")):
             update_data = {"user_id": 1, "product_name": "Test", "amount": 10.0}
             response = client.put("/api/v1/orders/1", json=update_data, headers=headers)
             assert response.status_code == 500
@@ -226,9 +218,7 @@ class TestGlobalErrorHandling:
             assert "internal server error" in data["detail"].lower()
 
         # Users
-        with patch(
-            "app.routes.schemas.UserUpdate", side_effect=Exception("Test exception")
-        ):
+        with patch("app.schemas.UserUpdate", side_effect=Exception("Test exception")):
             update_data = {"name": "Updated User", "email": "updated@example.com"}
             response = client.put("/api/v1/users/1", json=update_data, headers=headers)
             assert response.status_code == 500
@@ -236,9 +226,7 @@ class TestGlobalErrorHandling:
             assert "internal server error" in data["detail"].lower()
 
         # Stocks
-        with patch(
-            "app.routes.schemas.StockUpdate", side_effect=Exception("Test exception")
-        ):
+        with patch("app.schemas.StockUpdate", side_effect=Exception("Test exception")):
             update_data = {
                 "product_name": "Updated Product",
                 "quantity": 200,

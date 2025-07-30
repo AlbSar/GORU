@@ -19,3 +19,6 @@ pylint
 pre-commit
 pydantic_settings
 PyJWT
+slowapi
+passlib
+psutil

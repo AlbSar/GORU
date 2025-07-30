@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from ..main import app
 
 client = TestClient(app)
-headers = {"Authorization": "Bearer secret-token"}
+headers = {"Authorization": "Bearer test-token-12345"}
 
 
 def unique_product():
@@ -157,9 +157,7 @@ class TestStocksErrorHandling:
 
     def test_create_stock_internal_error_500(self):
         """POST with internal exception → 500"""
-        with patch(
-            "app.routes.schemas.StockCreate", side_effect=Exception("Test exception")
-        ):
+        with patch("app.schemas.StockCreate", side_effect=Exception("Test exception")):
             stock_data = {
                 "product_name": unique_product(),
                 "quantity": 100,
@@ -180,9 +178,7 @@ class TestStocksErrorHandling:
         )
         stock_id = stock_resp.json()["id"]
 
-        with patch(
-            "app.routes.schemas.StockUpdate", side_effect=Exception("Test exception")
-        ):
+        with patch("app.schemas.StockUpdate", side_effect=Exception("Test exception")):
             update_data = {
                 "product_name": "Updated Product",
                 "quantity": 200,
@@ -197,7 +193,7 @@ class TestStocksErrorHandling:
 
     def test_create_stock_database_error_500(self):
         """POST with database exception → 500"""
-        with patch("app.routes.SessionLocal") as mock_session:
+        with patch("app.database.SessionLocal") as mock_session:
             mock_session.side_effect = Exception("Database connection failed")
             stock_data = {
                 "product_name": unique_product(),

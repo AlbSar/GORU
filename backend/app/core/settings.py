@@ -29,6 +29,15 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "GORU ERP Backend"
 
+    # JWT Configuration
+    JWT_SECRET_KEY: str = "your-jwt-secret-key-change-in-production"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # Authentication Configuration
+    VALID_TOKEN: str = "test-token-12345"  # Development only
+
     # CORS Configuration
     BACKEND_CORS_ORIGINS: Union[List[str], str] = (
         '["http://localhost:3000", "http://localhost:8080"]'
@@ -42,6 +51,22 @@ class Settings(BaseSettings):
     # Mock sistem ayarları
     USE_MOCK: bool = False  # Mock endpoint'leri etkinleştir/devre dışı bırak
     MOCK_API_PREFIX: str = "/mock"
+
+    # Middleware ayarları
+    ENABLE_SECURITY_HEADERS: bool = True
+    ENABLE_RATE_LIMITING: bool = True
+    ENABLE_LOGGING_MIDDLEWARE: bool = True
+
+    # Rate limiting ayarları
+    DEFAULT_RATE_LIMIT: int = 60  # dakika başına request
+    BURST_RATE_LIMIT: int = 120  # burst limit
+    RATE_LIMIT_WINDOW: int = 60  # saniye
+
+    # Logging ayarları
+    LOG_REQUEST_BODY: bool = True
+    LOG_RESPONSE_BODY: bool = True
+    LOG_HEADERS: bool = True
+    MAX_LOG_BODY_SIZE: int = 10240  # 10KB
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod

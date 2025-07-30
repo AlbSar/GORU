@@ -41,8 +41,6 @@ def get_mock_users(
     limit: int = Query(100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"),
 ):
     """Mock kullanıcıları listele."""
-    if not settings.USE_MOCK:
-        return []
     users = MockUserService.get_all()
     return users[skip : skip + limit]
 
@@ -130,8 +128,6 @@ def get_mock_orders(
     limit: int = Query(100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"),
 ):
     """Mock siparişleri listele."""
-    if not settings.USE_MOCK:
-        return []
     orders = MockOrderService.get_all()
     return orders[skip : skip + limit]
 
@@ -219,8 +215,6 @@ def get_mock_stocks(
     limit: int = Query(100, ge=1, le=1000, description="Döndürülecek kayıt sayısı"),
 ):
     """Mock stokları listele."""
-    if not settings.USE_MOCK:
-        return []
     stocks = MockStockService.get_all()
     return stocks[skip : skip + limit]
 

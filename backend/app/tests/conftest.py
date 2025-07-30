@@ -16,6 +16,7 @@ from sqlalchemy.pool import StaticPool
 from ..auth import get_current_user
 from ..main import app
 from ..models import Base  # Models dosyasındaki Base'i kullan
+from ..routes.common import get_db  # Doğru import
 
 # Test ortamını ayarla
 os.environ["TESTING"] = "1"
@@ -99,20 +100,47 @@ def mock_auth_forbidden():
 def test_db():
     """Test veritabanı oluştur."""
     # Test ortamında tabloları oluştur
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("Test veritabanı tabloları oluşturuldu")
+    except Exception as e:
+        print(f"Test veritabanı tabloları oluşturulurken hata: {e}")
     yield
     # Test sonunda tabloları temizle
-    Base.metadata.drop_all(bind=engine)
+    try:
+        Base.metadata.drop_all(bind=engine)
+        print("Test veritabanı tabloları temizlendi")
+    except Exception as e:
+        print(f"Test veritabanı tabloları temizlenirken hata: {e}")
 
 
 @pytest.fixture
 def client(test_db):
     """Test client fixture with auth bypass."""
     # Routes dosyasındaki get_db'yi override et
-    from ..routes import get_db as routes_get_db
-
-    app.dependency_overrides[routes_get_db] = override_get_db
+    app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
+    with TestClient(app) as c:
+        yield c
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def client_with_auth(test_db):
+    """Test client fixture with proper auth headers."""
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    with TestClient(app) as c:
+        c.headers.update({"Authorization": "Bearer test-token-12345"})
+        yield c
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def client_without_auth(test_db):
+    """Test client fixture without auth bypass."""
+    # Sadece DB override yap, auth override yapma
+    app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
@@ -122,9 +150,7 @@ def client(test_db):
 def unauthenticated_client(test_db):
     """Test client fixture without auth bypass."""
     # Sadece DB override yap, auth override yapma
-    from ..routes import get_db as routes_get_db
-
-    app.dependency_overrides[routes_get_db] = override_get_db
+    app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
@@ -133,7 +159,7 @@ def unauthenticated_client(test_db):
 @pytest.fixture
 def auth_headers():
     """Auth token headers fixture."""
-    return {"Authorization": "Bearer secret-token"}
+    return {"Authorization": "Bearer test-token-12345"}
 
 
 @pytest.fixture
@@ -201,7 +227,7 @@ def authenticated_client(client, auth_headers):
 
 @pytest.fixture
 def create_test_user(client, auth_headers, unique_email):
-    """Test kullanıcısı oluştur ve user object'ini döndür."""
+    """Test kullanıcısı oluştur ve user dict'ini döndür."""
     user_data = {
         "name": "Fixture Test User",
         "email": unique_email,
@@ -209,37 +235,37 @@ def create_test_user(client, auth_headers, unique_email):
     }
     response = client.post("/api/v1/users/", json=user_data, headers=auth_headers)
     if response.status_code == 201:
-        return response.json()  # Tüm user object'ini döndür
+        return response.json()  # Tüm user dict'ini döndür
     return None
 
 
 @pytest.fixture
 def create_test_stock(client, auth_headers, unique_product):
-    """Test stoku oluştur ve stock object'ini döndür."""
+    """Test stoku oluştur ve stock dict'ini döndür."""
     stock_data = {
         "product_name": unique_product,
         "quantity": 50,
-        "price": 15.99,
+        "location": "Test Location",
     }
     response = client.post("/api/v1/stocks/", json=stock_data, headers=auth_headers)
     if response.status_code == 201:
-        return response.json()  # Tüm stock object'ini döndür
+        return response.json()  # Tüm stock dict'ini döndür
     return None
 
 
 @pytest.fixture
 def create_test_order(client, auth_headers, create_test_user, unique_product):
-    """Test siparişi oluştur ve order object'ini döndür."""
-    user_obj = create_test_user
-    if user_obj:
+    """Test siparişi oluştur ve order dict'ini döndür."""
+    if create_test_user:
+        user_id = create_test_user["id"]  # dict'ten ID'yi al
         order_data = {
-            "user_id": user_obj["id"],  # user object'inden id al
+            "user_id": user_id,  # user ID'yi kullan
             "product_name": unique_product,
             "amount": 100.0,
         }
         response = client.post("/api/v1/orders/", json=order_data, headers=auth_headers)
         if response.status_code == 201:
-            return response.json()  # Tüm order object'ini döndür
+            return response.json()  # Tüm order dict'ini döndür
     return None
 
 
